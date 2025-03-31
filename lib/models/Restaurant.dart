@@ -73,7 +73,7 @@ class Restaurant {
     this.cuisines = const [],
   });
 
-  factory Restaurant.fromJson(Map<String, dynamic> json) {
+  factory Restaurant.fromJson(Map<String, dynamic> json, cuisines) {
     return Restaurant(
       restaurantId: json['restaurant_id'] as int?,
       name: json['name'] as String?,
@@ -109,7 +109,7 @@ class Restaurant {
       osmEdit: json['osm_edit'] as String?,
       osmId: json['osm_id'] as String?,
       operator: json['operator'] as String?,
-      cuisines: (json['cuisines'] as List<dynamic>?)?.cast<String>() ?? [],
+      cuisines: cuisines ?? [],
     );
   }
 
@@ -152,4 +152,5 @@ class Restaurant {
       'cuisines': cuisines,
     };
   }
+
 }
