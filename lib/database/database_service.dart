@@ -42,12 +42,34 @@ class DatabaseService {
     try {
       final data = await _supabase
           .from('Cuisines')
-          .select('name')
-          .order('created_at');
+          .select('name');
 
       return (data as List).map((c) => c['name'] as String).toList();
     } catch (e) {
       throw Exception('Failed to fetch cuisines: $e');
     }
   }
+
+  Future<Map<String, dynamic>?> getRestaurant(int restaurantId) async {
+    final response = await _supabase
+        .from('Restaurants')
+        .select()
+        .eq('restaurant_id', restaurantId)
+        .maybeSingle();
+
+    if (response == null) {
+      return null;
+    }
+
+    final cuisinesResponse = await _supabase
+        .from('Restaurants_Cuisines')
+        .select('Cuisines(name)')
+        .eq('restaurant_id', restaurantId);
+
+    response['cuisines'] = cuisinesResponse.map((c) => c['Cuisines']['name']).toList();
+
+    return response;
+  }
+
+
 }
