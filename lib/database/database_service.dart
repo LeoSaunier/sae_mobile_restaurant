@@ -241,6 +241,7 @@ class DatabaseService {
     );
   }
 
+  // Fonction pour récupérer les avis d'un restaurant
   Future<List<Review>> getRestaurantReviews(int restaurantId) async {
     // Récupérer les avis du restaurant
     final response = await _supabase
@@ -252,20 +253,14 @@ class DatabaseService {
 
     List<Review> reviewsList = [];
 
-    // Récupérer une seule fois le restaurant
-    final restaurant = await getRestaurant(restaurantId);
 
+    // Parcourir les avis et récupérer les utilisateurs associés
     for (var reviewJson in response) {
-      // Récupérer l'utilisateur associé à l'avis
-      final user = await getUserById(reviewJson['user_id']);
-
-      if (user == null) continue; // Ignorer si l'utilisateur n'existe pas
-
       // Créer l'objet Review et l'ajouter à la liste
       reviewsList.add(Review(
         id: reviewJson['reviews_id'],
-        restaurant: restaurant,
-        user: user,
+        Idrestaurant: reviewJson['restaurant_id'],
+        Iduser: reviewJson['user_id'],
         rating: reviewJson['rating'],
         comment: reviewJson['comment'],
         date: DateTime.parse(reviewJson['created_at']),
@@ -274,5 +269,4 @@ class DatabaseService {
 
     return reviewsList;
   }
-
 }
