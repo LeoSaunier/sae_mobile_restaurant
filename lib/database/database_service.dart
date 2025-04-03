@@ -314,5 +314,29 @@ class DatabaseService {
       throw Exception('Failed to add review: ${response.error!.message}');
     }
   }
+
+  Future<List<String>> getFavoriteCuisines(int userId) async {
+    List<String> favoriteCuisines = [];
+
+    try {
+      // Effectuer une requête pour récupérer les noms des cuisines favorites
+      final response = await _supabase
+          .from('Cuisines_Favoris')
+          .select('Cuisines(name)') // Sélectionner le nom de la cuisine
+          .eq('user_id', userId); // Filtrer par user_id
+
+      // Extraire les noms des cuisines à partir de la réponse
+      for (var cuisine in response) {
+        favoriteCuisines.add(cuisine['name']);
+      }
+    } catch (e) {
+      // Gérer l'exception
+      throw Exception('Erreur lors de la récupération des cuisines favorites : ${e}');
+      // Vous pouvez également afficher un message à l'utilisateur ou effectuer d'autres actions
+    }
+
+    return favoriteCuisines;
   }
+
+}
 
