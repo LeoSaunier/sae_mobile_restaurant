@@ -50,26 +50,68 @@ class DatabaseService {
     }
   }
 
-  Future<Map<String, dynamic>?> getRestaurant(int restaurantId) async {
-    final response = await _supabase
-        .from('Restaurants')
-        .select()
-        .eq('restaurant_id', restaurantId)
-        .maybeSingle();
+  Future<Restaurant?> getRestaurant(int restaurantId) async {
+    try {
+      // Requête : Récupérer les détails du restaurant et les cuisines associées via la jointure.
+      final response = await _supabase
+          .from('Restaurants')
+          .select('*, Restaurants_Cuisines(cuisine_id), Cuisines(name)')
+          .eq('restaurant_id', restaurantId)
+          .maybeSingle();
 
-    if (response == null) {
+      if (response == null) {
+        return null;
+      }
+
+      // Récupérer les noms des cuisines depuis la réponse
+      final cuisinesResponse = response['Restaurants_Cuisines'] as List<dynamic>;
+      final cuisinesNames = cuisinesResponse
+          .map((c) => c['cuisine_id'])
+          .toList();
+
+      final cuisineNamesResponse = response['Cuisines'] as List<dynamic>;
+      final cuisines = cuisineNamesResponse.map((c) => c['name'] as String).toList();
+
+      // Retourner un restaurant avec les cuisines récupérées
+      return Restaurant.fromJson(response, cuisines);
+    } catch (error) {
+      print('Erreur lors de la récupération du restaurant: $error');
       return null;
     }
-
-    final cuisinesResponse = await _supabase
-        .from('Restaurants_Cuisines')
-        .select('Cuisines(name)')
-        .eq('restaurant_id', restaurantId);
-
-    response['cuisines'] = cuisinesResponse.map((c) => c['Cuisines']['name']).toList();
-
-    return response;
   }
+
+
+  Future<List<Restaurant>> getRestaurantsByCuisine(String cuisine) async {
+    try {
+      // 1ère requête : Récupérer les restaurants ayant la cuisine spécifiée
+      final response = await _supabase
+          .from('Restaurants')
+          .select('*, Restaurants_Cuisines(cuisine_id), Cuisines(name)')
+          .eq('Cuisines.name', cuisine);
+
+      if (response.isEmpty) {
+        return [];
+      }
+
+      List<Restaurant> restaurants = [];
+
+      // Parcourir la réponse et extraire les informations des restaurants et des cuisines
+      for (var restaurantData in response) {
+        final cuisinesResponse = restaurantData['Cuisines'] as List<dynamic>;
+        final cuisines = cuisinesResponse.map((c) => c['name'] as String).toList();
+
+        // Créer un objet Restaurant avec les données récupérées
+        final restaurant = Restaurant.fromJson(restaurantData, cuisines);
+        restaurants.add(restaurant);
+      }
+
+      return restaurants;
+    } catch (error) {
+      print('Erreur lors de la récupération des restaurants: $error');
+      return [];
+    }
+  }
+
 
 
 }
