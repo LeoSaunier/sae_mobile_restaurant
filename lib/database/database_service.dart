@@ -130,45 +130,43 @@ class DatabaseService {
   Future<Utilisateur?> getUser(String email, String password) async {
     try {
       // 1. Requête pour récupérer l'utilisateur avec l'email
-      final response = await _supabase
+      final userResponse = await _supabase
           .from('Utilisateur')
           .select('*')
           .eq('email', email)
           .maybeSingle();
 
-      if (response == null) {
+      if (userResponse == null) {
         // Aucun utilisateur trouvé avec cet email
         return null;
       }
 
-      // 2. Récupérer le mot de passe haché de l'utilisateur
-      final passwordHash = response['password_hash'];
-
-      // 3. Vérifier si le mot de passe correspond au hachage
+      // 2. Vérification du mot de passe
+      final passwordHash = userResponse['password_hash'] as String;
       if (!await _verifyPassword(password, passwordHash)) {
-        // Si le mot de passe ne correspond pas
         return null;
       }
 
-      // 4. Récupérer les cuisines et restaurants favoris de l'utilisateur
-      final cuisinesResponse = await _supabase
-          .from('Cuisines')
-          .select('name')
-          .eq('id', response['favorite_cuisines']);
+      // 3. Récupération des données en parallèle
+      final userId = userResponse['id'] as int;
 
-      final cuisines = cuisinesResponse.map<String>((
-          cuisine) => cuisine['name']).toList();
+      final results = await Future.wait([
+        getFavoriteCuisines(userId),
+        getRestaurantsFavorite(userId),
+      ]);
 
-      final restaurantsResponse = await _supabase
-          .from('Restaurants')
-          .select('name')
-          .eq('id', response['favorite_restaurants']);
+      final favoriteCuisines = results[0] as List<String>;
+      final favoriteRestaurantsIds = (results[1] as List<Restaurant>)
+          .map((r) => r.restaurantId?.toString() ?? '') // Convertir l'ID en String
+          .where((id) => id.isNotEmpty)
+          .toList();
 
-      final restaurants = restaurantsResponse.map<String>((
-          restaurant) => restaurant['name']).toList();
-
-      // Créer l'objet User avec les cuisines et restaurants favoris
-      return Utilisateur.fromJson(response, cuisines, restaurants);
+      // 4. Création de l'objet Utilisateur
+      return Utilisateur.fromJson(
+        userResponse,
+        favoriteCuisines,
+        favoriteRestaurantsIds,
+      );
     } catch (error) {
       print('Erreur lors de la récupération de l\'utilisateur: $error');
       return null;
