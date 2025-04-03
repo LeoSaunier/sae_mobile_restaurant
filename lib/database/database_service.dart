@@ -557,5 +557,25 @@ class DatabaseService {
     }
   }
 
+  Future<Review?> getReviewById(int reviewId) async {
+    try {
+      final response = await _supabase
+          .from('Reviews')
+          .select()
+          .eq('review_id', reviewId)
+          .maybeSingle();
+
+      if (response != null) {
+        return Review.fromMap(response);
+      } else {
+        print('Avis introuvable pour review_id: $reviewId');
+        return null;
+      }
+    } catch (e) {
+      print('Erreur lors de la récupération de l\'avis: $e');
+      return null;
+    }
+  }
+
 }
 
