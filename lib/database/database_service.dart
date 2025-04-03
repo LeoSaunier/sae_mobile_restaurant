@@ -543,7 +543,19 @@ class DatabaseService {
     }
   }
 
+  Future<bool> deleteReview(Review review) async {
+    try {
+      final response = await _supabase
+          .from('Reviews')
+          .delete()
+          .eq('review_id', review.id);
 
+      return response.error == null;
+    } catch (e) {
+      print('Erreur suppression avis: $e');
+      return false;
+    }
+  }
 
 }
 
