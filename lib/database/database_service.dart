@@ -296,5 +296,23 @@ class DatabaseService {
 
     return reviewsList;
     }
+
+  Future<void> addReview(int restaurantId, int userId, double rating, String comment) async {
+    final response = await _supabase
+        .from('Reviews')
+        .insert([
+      {
+        'restaurant_id': restaurantId,
+        'user_id': userId,
+        'rating': rating,
+        'comment': comment,
+        'created_at': DateTime.now().toIso8601String()  // Optionnel si tu veux définir la date
+      }
+    ]);
+
+    if (response.error != null) {
+      throw Exception('Failed to add review: ${response.error!.message}');
+    }
+  }
   }
 
