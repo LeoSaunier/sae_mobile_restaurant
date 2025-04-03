@@ -525,6 +525,24 @@ class DatabaseService {
     }
   }
 
+  Future<bool> updateReview(Review updatedReview) async {
+    try {
+      final response = await _supabase
+          .from('Reviews')
+          .update({
+        'rating': updatedReview.rating,
+        'comment': updatedReview.comment,
+        'date': updatedReview.date.toIso8601String(),
+      })
+          .eq('review_id', updatedReview.id);
+
+      return response.error == null;
+    } catch (e) {
+      print('Erreur mise à jour avis: $e');
+      return false;
+    }
+  }
+
 
 
 }
