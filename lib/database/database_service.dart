@@ -269,4 +269,32 @@ class DatabaseService {
 
     return reviewsList;
   }
-}
+
+
+  // Fonction pour récupérer tous les avis d'un utilisateur en se basant uniquement sur les ids
+  Future<List<Review>> getReviewsUser(int userId) async {
+    final response = await _supabase
+        .from('Reviews')
+        .select('reviews_id, restaurant_id, rating, comment, created_at')
+        .eq('user_id', userId);
+
+    if (response.isEmpty) return [];
+
+    List<Review> reviewsList = [];
+
+    for (var reviewJson in response) {
+      // Créer l'objet Review et l'ajouter à la liste
+      reviewsList.add(Review(
+      id: reviewJson['reviews_id'],
+      Idrestaurant: reviewJson['restaurant_id'],
+      Iduser: userId,
+      rating: reviewJson['rating'],
+      comment: reviewJson['comment'],
+      date: DateTime.parse(reviewJson['created_at']),
+      ));
+    }
+
+    return reviewsList;
+    }
+  }
+
