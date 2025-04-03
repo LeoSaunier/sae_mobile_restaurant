@@ -1,37 +1,32 @@
-class User {
+class Utilisateur {
   final int id;
-  final String prenom;
+  final String firstName;
   final String email;
-  final String password;
-  final String nom;
+  final String passwordHash;
+  final String lastName;
+  final List<String> favoriteCuisines;
+  final List<String> favoriteRestaurants;
 
-  User({
+  Utilisateur({
     required this.id,
-    required this.prenom,
+    required this.firstName,
     required this.email,
-    required this.password,
-    required this.nom,
+    required this.passwordHash,
+    required this.lastName,
+    required this.favoriteCuisines,
+    required this.favoriteRestaurants,
   });
 
-  // Convertir un objet User en Map (utile pour la base de données ou API)
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'prenom': prenom,
-      'email': email,
-      'password': password,
-      'nom': nom,
-    };
-  }
-
-  // Créer un objet User à partir d'une Map (utile pour la base de données ou API)
-  factory User.fromMap(Map<String, dynamic> map) {
-    return User(
-      id: map['id'],
-      prenom: map['prenom'],
-      email: map['email'],
-      password: map['password'],
-      nom: map['nom'],
+  // Factory pour créer un utilisateur à partir de la base de données
+  factory Utilisateur.fromJson(Map<String, dynamic> json, List<String> cuisines, List<String> restaurants) {
+    return Utilisateur(
+      id: json['id'],
+      firstName: json['prenom'],
+      email: json['email'],
+      passwordHash: json['password_hash'],
+      lastName: json['nom'],
+      favoriteCuisines: cuisines,
+      favoriteRestaurants: restaurants,
     );
   }
 }

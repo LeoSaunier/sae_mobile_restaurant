@@ -1,6 +1,8 @@
+import 'package:bcrypt/bcrypt.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/Restaurant.dart';
+import '../models/User.dart';
 
 class DatabaseService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -112,6 +114,57 @@ class DatabaseService {
     }
   }
 
+  Future<bool> _verifyPassword(String password, String hashedPassword) async {
+    // Utiliser bcrypt pour comparer le mot de passe avec le hash
+    return BCrypt.checkpw(password, hashedPassword);
+  }
+
+  Future<Utilisateur?> getUser(String email, String password) async {
+    try {
+      // 1. Requête pour récupérer l'utilisateur avec l'email
+      final response = await _supabase
+          .from('Utilisateur')
+          .select('*')
+          .eq('email', email)
+          .maybeSingle();
+
+      if (response == null) {
+        // Aucun utilisateur trouvé avec cet email
+        return null;
+      }
+
+      // 2. Récupérer le mot de passe haché de l'utilisateur
+      final passwordHash = response['password_hash'];
+
+      // 3. Vérifier si le mot de passe correspond au hachage
+      if (!await _verifyPassword(password, passwordHash)) {
+        // Si le mot de passe ne correspond pas
+        return null;
+      }
+
+      // 4. Récupérer les cuisines et restaurants favoris de l'utilisateur
+      final cuisinesResponse = await _supabase
+          .from('Cuisines')
+          .select('name')
+          .eq('id', response['favorite_cuisines']);
+
+      final cuisines = cuisinesResponse.map<String>((cuisine) => cuisine['name']).toList();
+
+      final restaurantsResponse = await _supabase
+          .from('Restaurants')
+          .select('name')
+          .eq('id', response['favorite_restaurants']);
+
+      final restaurants = restaurantsResponse.map<String>((restaurant) => restaurant['name']).toList();
+
+      // Créer l'objet User avec les cuisines et restaurants favoris
+      return Utilisateur.fromJson(response, cuisines, restaurants);
+
+    } catch (error) {
+      print('Erreur lors de la récupération de l\'utilisateur: $error');
+      return null;
+    }
+  }
 
 
 }
