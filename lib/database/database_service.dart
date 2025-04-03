@@ -2,6 +2,7 @@ import 'package:bcrypt/bcrypt.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/Restaurant.dart';
+import '../models/Review.dart';
 import '../models/User.dart';
 
 class DatabaseService {
@@ -200,4 +201,78 @@ class DatabaseService {
       final hashedPassword = BCrypt.hashpw(password, salt);  // Hacher le mot de passe avec le salt
       return hashedPassword;
     }
+
+  Future<double?> getRestaurantRating(int restaurantId) async {
+    final response = await _supabase
+        .from('Reviews')
+        .select('rating')
+        .eq('restaurant_id', restaurantId);
+
+    if (response.isEmpty) {
+      return null; // Pas de notes pour ce restaurant
+    }
+
+    // Calculer la moyenne des ratings
+    double sum = 0;
+    for (var review in response) {
+      sum += (review['rating'] as num).toDouble();
+    }
+
+    return sum / response.length;
+  }
+
+  Future<Utilisateur?> getUserById(int userId) async {
+    final response = await _supabase
+        .from('Utilisateur')
+        .select('id, prenom, email, nom')
+        .eq('id', userId)
+        .single();
+
+    if (response == null) return null;
+
+    return Utilisateur(
+      id: response['id'],
+      firstName: response['prenom'],
+      email: response['email'],
+      passwordHash: '', // Optionnel : Ne pas stocker le hash dans l'objet
+      lastName: response['nom'],
+      favoriteCuisines: [],
+      favoriteRestaurants: [],
+    );
+  }
+
+  Future<List<Review>> getRestaurantReviews(int restaurantId) async {
+    // Récupérer les avis du restaurant
+    final response = await _supabase
+        .from('Reviews')
+        .select('reviews_id, user_id, rating, comment, created_at')
+        .eq('restaurant_id', restaurantId);
+
+    if (response.isEmpty) return [];
+
+    List<Review> reviewsList = [];
+
+    // Récupérer une seule fois le restaurant
+    final restaurant = await getRestaurant(restaurantId);
+
+    for (var reviewJson in response) {
+      // Récupérer l'utilisateur associé à l'avis
+      final user = await getUserById(reviewJson['user_id']);
+
+      if (user == null) continue; // Ignorer si l'utilisateur n'existe pas
+
+      // Créer l'objet Review et l'ajouter à la liste
+      reviewsList.add(Review(
+        id: reviewJson['reviews_id'],
+        restaurant: restaurant,
+        user: user,
+        rating: reviewJson['rating'],
+        comment: reviewJson['comment'],
+        date: DateTime.parse(reviewJson['created_at']),
+      ));
+    }
+
+    return reviewsList;
+  }
+
 }
