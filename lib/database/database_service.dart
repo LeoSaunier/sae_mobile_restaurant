@@ -8,12 +8,16 @@ import '../models/User.dart';
 class DatabaseService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  Future<List<Restaurant>> getRestaurants({int limit = 30}) async {
+  Future<List<Restaurant>> getRestaurants({int page=0, int limit = 30}) async {
     try {
+      final from = page * limit;
+      final to = from + limit - 1;
+
+
       final data = await _supabase
           .from('Restaurants')
           .select()
-          .limit(limit);
+      .range(from, to);
 
       print(data);
 
