@@ -136,73 +136,105 @@ class DatabaseService {
       // 1. Requête pour récupérer l'utilisateur avec l'email
       final userResponse = await _supabase
           .from('Utilisateur')
-          .select('*')
+          .select('user_id, prenom, nom, email, password_hash') // Liste explicite des champs
           .eq('email', email)
           .maybeSingle();
 
       if (userResponse == null) {
-        // Aucun utilisateur trouvé avec cet email
+        print('Aucun utilisateur trouvé avec cet email');
         return null;
       }
 
-      // 2. Vérification du mot de passe
-      final passwordHash = userResponse['password_hash'] as String;
-      if (!await _verifyPassword(password, passwordHash)) {
+      // Debug: Afficher la réponse complète
+      print('User response: $userResponse');
+
+      // 2. Vérification du mot de passe avec gestion de null
+      final passwordHash = userResponse['password_hash'] as String?;
+      if (passwordHash == null || !await _verifyPassword(password, passwordHash)) {
+        print('Mot de passe incorrect ou hash manquant');
         return null;
       }
 
-      // 3. Récupération des données en parallèle
-      final userId = userResponse['id'] as int;
+      // 3. Récupération de l'ID avec vérification de type
+      final userId = userResponse['user_id'];
+      if (userId == null) {
+        print('ID utilisateur manquant dans la réponse');
+        return null;
+      }
 
+      // Conversion sécurisée de l'ID
+      final int userIdInt;
+      if (userId is int) {
+        userIdInt = userId;
+      } else if (userId is String) {
+        userIdInt = int.tryParse(userId) ?? 0;
+      } else {
+        print('Type d\'ID non reconnu: ${userId.runtimeType}');
+        return null;
+      }
+
+      if (userIdInt == 0) {
+        print('ID utilisateur invalide');
+        return null;
+      }
+
+      // 4. Récupération des données en parallèle
       final results = await Future.wait([
-        getFavoriteCuisines(userId),
-        getRestaurantsFavorite(userId),
+        getFavoriteCuisines(userIdInt),
+        getRestaurantsFavorite(userIdInt),
       ]);
 
       final favoriteCuisines = results[0] as List<String>;
       final favoriteRestaurantsIds = (results[1] as List<Restaurant>)
-          .map((r) => r.restaurantId?.toString() ?? '') // Convertir l'ID en String
+          .map((r) => r.restaurantId?.toString() ?? '')
           .where((id) => id.isNotEmpty)
           .toList();
 
-      // 4. Création de l'objet Utilisateur
+      // 5. Création de l'objet Utilisateur avec vérification des champs
       return Utilisateur.fromJson(
-        userResponse,
+        {
+          ...userResponse,
+          'id': userIdInt, // On s'assure d'utiliser l'ID converti
+        },
         favoriteCuisines,
         favoriteRestaurantsIds,
       );
-    } catch (error) {
-      print('Erreur lors de la récupération de l\'utilisateur: $error');
+    } catch (error, stackTrace) {
+      print('Erreur complète dans getUser: $error');
+      print('Stack trace: $stackTrace');
       return null;
     }
   }
 
-  Future<Utilisateur?> registerUser(String prenom, String nom, String email,
-      String password) async {
+  Future<Utilisateur?> registerUser(String prenom, String nom, String email, String password) async {
     try {
-      // 1. Hachage du mot de passe (vous pouvez aussi utiliser une méthode de hachage côté serveur si nécessaire)
       final hashedPassword = await hashPassword(password);
 
-      // 2. Insertion de l'utilisateur dans la base de données Supabase
-      final response = await _supabase.from('Utilisateur').insert([
-        {
-          'prenom': prenom,
-          'nom': nom,
-          'email': email,
-          'password_hash': hashedPassword,
-        }
-      ]);
+      final response = await _supabase
+          .from('Utilisateur')
+          .insert({
+        'prenom': prenom,
+        'nom': nom,
+        'email': email,
+        'password_hash': hashedPassword,
+      })
+          .select('*') // Spécifiez explicitement les colonnes à retourner
+          .single();
 
-      if (response.error != null) {
-        print('Erreur lors de l\'insertion de l\'utilisateur: ${response.error
-            ?.message}');
-        return null;
-      }
+      // Debug: affichez la réponse reçue
+      print('Réponse de Supabase: $response');
 
-      // 3. Récupérer les informations de l'utilisateur
-      return await getUser(email, password);
-    } catch (error) {
-      print('Erreur lors de l\'enregistrement de l\'utilisateur: $error');
+      return Utilisateur.fromJson(
+        response,
+        [],
+        [],
+      );
+    } on PostgrestException catch (e) {
+      print('Erreur Supabase: ${e.message}');
+      return null;
+    } catch (error, stackTrace) {
+      print('Erreur complète: $error');
+      print('Stack trace: $stackTrace');
       return null;
     }
   }
