@@ -1,5 +1,4 @@
-import 'package:sae_restaurant/models/Restaurant.dart';
-import 'package:sae_restaurant/models/User.dart';
+
 
 class Review {
   final int id;
