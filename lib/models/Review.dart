@@ -1,6 +1,6 @@
 class Review {
-  final String restaurantId;
-  final String userId;
+  final int restaurantId;
+  final int userId;
   final double rating;
   final String comment;
   final DateTime date;

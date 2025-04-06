@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/Restaurant.dart';
-import '../database/database_service.dart';
+import '/models/Restaurant.dart';
+import '/database/database_service.dart';
 import 'widgets/restaurant_card.dart';
 
 class RestaurantListe extends StatefulWidget {
@@ -29,7 +29,7 @@ class _RestaurantListeState extends State<RestaurantListe> {
 
     try {
       final results = await DatabaseService().rechercheRestaurant(query);
-      setState(() => _filteredRestaurants = results);
+      setState(() => _filteredRestaurants = results.cast<Restaurant>());
     } catch (e) {
       print("Erreur lors de la recherche: $e");
     }
