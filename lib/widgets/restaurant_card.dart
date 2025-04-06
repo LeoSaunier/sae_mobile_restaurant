@@ -7,7 +7,7 @@ import '../restaurant_detail.dart';
 class RestaurantCard extends StatelessWidget {
   final Restaurant restaurant;
 
-  const RestaurantCard({super.key, required this.restaurant});
+  const RestaurantCard({Key? key, required this.restaurant}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,70 +30,77 @@ class RestaurantCard extends StatelessWidget {
         elevation: 3,
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Row(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  restaurant.imageUrl ?? 'https://via.placeholder.com/100',
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
                     width: 80,
                     height: 80,
-                    color: Colors.grey,
-                    child: const Icon(Icons.restaurant, size: 40),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      image: restaurant.imageUrl != null
+                          ? DecorationImage(
+                        image: NetworkImage(restaurant.imageUrl!),
+                        fit: BoxFit.cover,
+                      )
+                          : null,
+                      color: Colors.grey[300],
+                    ),
+                    child: restaurant.imageUrl == null
+                        ? const Icon(Icons.restaurant, size: 40)
+                        : null,
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                            restaurant.name ?? 'Nom inconnu',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                restaurant.name ?? 'Nom inconnu',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                favoritesVM.isRestaurantFavorite(restaurant.restaurantId!)
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: Colors.red,
+                              ),
+                              onPressed: () => favoritesVM.toggleRestaurantFavorite(restaurant),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          restaurant.cuisines.join(', '),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        if (restaurant.address != null)
+                          Text(
+                            restaurant.address!,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: Icon(
-                            favoritesVM.isRestaurantFavorite(restaurant.restaurantId!)
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: Colors.red,
-                          ),
-                          onPressed: () => favoritesVM.toggleRestaurantFavorite(restaurant),
-                        ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      restaurant.cuisines.join(', '),
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    if (restaurant.address != null)
-                      Text(
-                        restaurant.address!,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
-                      ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

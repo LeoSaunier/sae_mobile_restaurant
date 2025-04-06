@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/Restaurant.dart';
 import '../viewModel/favorites_viewmodel.dart';
 import '../widgets/restaurant_card.dart';
+import 'cuisine_restaurants_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({Key? key}) : super(key: key);
@@ -17,14 +19,14 @@ class FavoritesScreen extends StatelessWidget {
           title: const Text('Mes Favoris'),
           bottom: const TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.restaurant), text: 'Restaurants'),
-              Tab(icon: Icon(Icons.fastfood), text: 'Cuisines'),
+              Tab(icon: Icon(Icons.restaurant)),
+              Tab(icon: Icon(Icons.fastfood)),
             ],
           ),
         ),
         body: TabBarView(
           children: [
-            // Onglet Restaurants
+            // Onglet Restaurants favoris
             favoritesVM.favorites.isEmpty
                 ? const Center(child: Text('Aucun restaurant favori'))
                 : ListView.builder(
@@ -34,7 +36,7 @@ class FavoritesScreen extends StatelessWidget {
               ),
             ),
 
-            // Onglet Cuisines
+            // Onglet Cuisines favorites
             favoritesVM.favoriteCuisines.isEmpty
                 ? const Center(child: Text('Aucune cuisine favorite'))
                 : ListView.builder(
@@ -43,11 +45,21 @@ class FavoritesScreen extends StatelessWidget {
                 leading: const Icon(Icons.fastfood),
                 title: Text(favoritesVM.favoriteCuisines[index]),
                 trailing: IconButton(
-                  icon: const Icon(Icons.favorite, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: Colors.red),
                   onPressed: () => favoritesVM.toggleCuisineFavorite(
                     favoritesVM.favoriteCuisines[index],
                   ),
                 ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CuisineRestaurantsScreen(
+                        cuisine: favoritesVM.favoriteCuisines[index],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],

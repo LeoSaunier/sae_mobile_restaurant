@@ -2,6 +2,7 @@ class Restaurant {
   final int? restaurantId;
   final String? name;
   final String? type;
+  final String? imageUrl;
   final bool? vegetarian;
   final bool? vegan;
   final bool? delivery;
@@ -17,22 +18,6 @@ class Restaurant {
   final bool? smokingAllowed;
   final int? capacity;
   final bool? driveThrough;
-  final String? facebook;
-  final String? siret;
-  final String? department;
-  final String? region;
-  final String? brand;
-  final String? wikidata;
-  final String? brandWikidata;
-  final int? comInsee;
-  final int? codeRegion;
-  final int? codeDepartement;
-  final String? commune;
-  final String? comNom;
-  final int? codeCommune;
-  final String? osmEdit;
-  final String? osmId;
-  final String? operator;
   final List<String> cuisines;
   bool isFavorite;
 
@@ -40,6 +25,7 @@ class Restaurant {
     this.restaurantId,
     this.name,
     this.type,
+    this.imageUrl,
     this.vegetarian,
     this.vegan,
     this.delivery,
@@ -55,23 +41,7 @@ class Restaurant {
     this.smokingAllowed,
     this.capacity,
     this.driveThrough,
-    this.facebook,
-    this.siret,
-    this.department,
-    this.region,
-    this.brand,
-    this.wikidata,
-    this.brandWikidata,
-    this.comInsee,
-    this.codeRegion,
-    this.codeDepartement,
-    this.commune,
-    this.comNom,
-    this.codeCommune,
-    this.osmEdit,
-    this.osmId,
-    this.operator,
-    this.cuisines = const [],
+    required this.cuisines,
     this.isFavorite = false,
   });
 
@@ -80,6 +50,7 @@ class Restaurant {
       restaurantId: json['restaurant_id'] as int?,
       name: json['name'] as String?,
       type: json['type'] as String?,
+      imageUrl: json['image_url'] as String?,
       vegetarian: json['vegetarian'] as bool?,
       vegan: json['vegan'] as bool?,
       delivery: json['delivery'] as bool?,
@@ -95,70 +66,15 @@ class Restaurant {
       smokingAllowed: json['smoking_allowed'] as bool?,
       capacity: json['capacity'] as int?,
       driveThrough: json['drive_through'] as bool?,
-      facebook: json['facebook'] as String?,
-      siret: json['siret'] as String?,
-      department: json['department'] as String?,
-      region: json['region'] as String?,
-      brand: json['brand'] as String?,
-      wikidata: json['wikidata'] as String?,
-      brandWikidata: json['brand_wikidata'] as String?,
-      comInsee: json['com_insee'] as int?,
-      codeRegion: json['code_region'] as int?,
-      codeDepartement: json['code_departement'] as int?,
-      commune: json['commune'] as String?,
-      comNom: json['com_nom'] as String?,
-      codeCommune: json['code_commune'] as int?,
-      osmEdit: json['osm_edit'] as String?,
-      osmId: json['osm_id'] as String?,
-      operator: json['operator'] as String?,
       cuisines: cuisines,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'restaurant_id': restaurantId,
-      'name': name,
-      'type': type,
-      'vegetarian': vegetarian,
-      'vegan': vegan,
-      'delivery': delivery,
-      'takeaway': takeaway,
-      'phone': phone,
-      'website': website,
-      'address': address,
-      'latitude': latitude,
-      'longitude': longitude,
-      'opening_hours': openingHours,
-      'wheelchair_accessibility': wheelchairAccessibility,
-      'internet_access': internetAccess,
-      'smoking_allowed': smokingAllowed,
-      'capacity': capacity,
-      'drive_through': driveThrough,
-      'facebook': facebook,
-      'siret': siret,
-      'department': department,
-      'region': region,
-      'brand': brand,
-      'wikidata': wikidata,
-      'brand_wikidata': brandWikidata,
-      'com_insee': comInsee,
-      'code_region': codeRegion,
-      'code_departement': codeDepartement,
-      'commune': commune,
-      'com_nom': comNom,
-      'code_commune': codeCommune,
-      'osm_edit': osmEdit,
-      'osm_id': osmId,
-      'operator': operator,
-      'cuisines': cuisines,
-    };
   }
 
   Restaurant copyWith({
     int? restaurantId,
     String? name,
     String? type,
+    String? imageUrl,
     bool? vegetarian,
     bool? vegan,
     bool? delivery,
@@ -174,22 +90,6 @@ class Restaurant {
     bool? smokingAllowed,
     int? capacity,
     bool? driveThrough,
-    String? facebook,
-    String? siret,
-    String? department,
-    String? region,
-    String? brand,
-    String? wikidata,
-    String? brandWikidata,
-    int? comInsee,
-    int? codeRegion,
-    int? codeDepartement,
-    String? commune,
-    String? comNom,
-    int? codeCommune,
-    String? osmEdit,
-    String? osmId,
-    String? operator,
     List<String>? cuisines,
     bool? isFavorite,
   }) {
@@ -197,6 +97,7 @@ class Restaurant {
       restaurantId: restaurantId ?? this.restaurantId,
       name: name ?? this.name,
       type: type ?? this.type,
+      imageUrl: imageUrl ?? this.imageUrl,
       vegetarian: vegetarian ?? this.vegetarian,
       vegan: vegan ?? this.vegan,
       delivery: delivery ?? this.delivery,
@@ -212,22 +113,6 @@ class Restaurant {
       smokingAllowed: smokingAllowed ?? this.smokingAllowed,
       capacity: capacity ?? this.capacity,
       driveThrough: driveThrough ?? this.driveThrough,
-      facebook: facebook ?? this.facebook,
-      siret: siret ?? this.siret,
-      department: department ?? this.department,
-      region: region ?? this.region,
-      brand: brand ?? this.brand,
-      wikidata: wikidata ?? this.wikidata,
-      brandWikidata: brandWikidata ?? this.brandWikidata,
-      comInsee: comInsee ?? this.comInsee,
-      codeRegion: codeRegion ?? this.codeRegion,
-      codeDepartement: codeDepartement ?? this.codeDepartement,
-      commune: commune ?? this.commune,
-      comNom: comNom ?? this.comNom,
-      codeCommune: codeCommune ?? this.codeCommune,
-      osmEdit: osmEdit ?? this.osmEdit,
-      osmId: osmId ?? this.osmId,
-      operator: operator ?? this.operator,
       cuisines: cuisines ?? this.cuisines,
       isFavorite: isFavorite ?? this.isFavorite,
     );

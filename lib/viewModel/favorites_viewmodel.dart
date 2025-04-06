@@ -11,7 +11,6 @@ class FavoritesViewModel with ChangeNotifier {
 
   Future<void> loadFavorites() async {
     final restaurantIds = await _storage.getFavoriteRestaurants();
-    // Implémentez la méthode pour charger les restaurants par IDs
     favoriteCuisines = await _storage.getFavoriteCuisines();
     notifyListeners();
   }
@@ -30,7 +29,6 @@ class FavoritesViewModel with ChangeNotifier {
     await _storage.saveFavoriteRestaurants(
       favorites.map((r) => r.restaurantId!).toList(),
     );
-
     notifyListeners();
   }
 
@@ -40,12 +38,15 @@ class FavoritesViewModel with ChangeNotifier {
     } else {
       favoriteCuisines.add(cuisine);
     }
-
     await _storage.saveFavoriteCuisines(favoriteCuisines);
     notifyListeners();
   }
 
   bool isRestaurantFavorite(int restaurantId) {
     return favorites.any((r) => r.restaurantId == restaurantId);
+  }
+
+  bool isCuisineFavorite(String cuisine) {
+    return favoriteCuisines.contains(cuisine);
   }
 }

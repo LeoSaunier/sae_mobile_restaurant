@@ -80,38 +80,6 @@ class DatabaseService {
     }
   }
 
-
-  Future<List<Restaurant>> getRestaurantsByCuisine(String cuisine) async {
-    try {
-      // 1ère requête : Récupérer les restaurants ayant la cuisine spécifiée
-      final response = await _supabase
-          .from('Restaurants')
-          .select('*, Restaurants_Cuisines(cuisine_id), Cuisines(name)')
-          .eq('Cuisines.name', cuisine);
-
-      if (response.isEmpty) {
-        return [];
-      }
-
-      List<Restaurant> restaurants = [];
-
-      // Parcourir la réponse et extraire les informations des restaurants et des cuisines
-      for (var restaurantData in response) {
-        final cuisinesResponse = restaurantData['Cuisines'] as List<dynamic>;
-        final cuisines = cuisinesResponse.map((c) => c['name'] as String).toList();
-
-        // Créer un objet Restaurant avec les données récupérées
-        final restaurant = Restaurant.fromJson(restaurantData, cuisines);
-        restaurants.add(restaurant);
-      }
-
-      return restaurants;
-    } catch (error) {
-      print('Erreur lors de la récupération des restaurants: $error');
-      return [];
-    }
-  }
-
   Future<bool> _verifyPassword(String password, String hashedPassword) async {
     // Utiliser bcrypt pour comparer le mot de passe avec le hash
     return BCrypt.checkpw(password, hashedPassword);
@@ -339,6 +307,34 @@ class DatabaseService {
       final cuisines = (data['Cuisines'] as List<dynamic>).map((c) => c['name'] as String).toList();
       return Restaurant.fromJson(data, cuisines)..isFavorite = true;
     }).toList();
+  }
+  Future<List<Restaurant>> getRestaurantsByCuisine(String cuisine) async {
+    try {
+      // Requête pour récupérer les restaurants avec la cuisine spécifiée
+      final response = await _supabase
+          .from('Restaurants_Cuisines')
+          .select('''
+          restaurant_id,
+          Restaurants(*),
+          Cuisines!inner(name)
+        ''')
+          .eq('Cuisines.name', cuisine);
+
+      if (response.isEmpty) return [];
+
+      List<Restaurant> restaurants = [];
+
+      for (var item in response) {
+        final restaurantData = item['Restaurants'];
+        final cuisines = await getCuisinesForRestaurant(restaurantData['restaurant_id']);
+        restaurants.add(Restaurant.fromJson(restaurantData, cuisines));
+      }
+
+      return restaurants;
+    } catch (error) {
+      print('Erreur lors de la récupération des restaurants par cuisine: $error');
+      return [];
+    }
   }
 
 }

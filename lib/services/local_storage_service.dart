@@ -27,14 +27,4 @@ class LocalStorageService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getStringList(_favoriteCuisinesKey) ?? [];
   }
-
-  Future<void> toggleRestaurantFavorite(int restaurantId, bool isFavorite) async {
-    final favorites = await getFavoriteRestaurants();
-    if (isFavorite) {
-      favorites.add(restaurantId);
-    } else {
-      favorites.remove(restaurantId);
-    }
-    await saveFavoriteRestaurants(favorites);
-  }
 }
