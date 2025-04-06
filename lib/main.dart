@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+
 import 'package:tp2/mytheme.dart';
 import 'package:tp2/viewModel/settingViewModel.dart';
 import 'package:tp2/viewModel/taskViewModel.dart';
@@ -12,9 +15,15 @@ import 'addTaskForm.dart';
 import 'ecran_settings.dart';
 
 
+Future<void> main() async {
 
-void main() {
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://dhhugougxeqqjglegovv.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoaHVnb3VneGVxcWpnbGVnb3Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTM2NTgsImV4cCI6MjA1NjU4OTY1OH0.-D6yUvdMPVSIbQQaWvs1WrTBBk7YG1OGE81VptxiYIs',
+  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
