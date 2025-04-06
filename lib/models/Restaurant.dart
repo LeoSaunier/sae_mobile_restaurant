@@ -34,6 +34,7 @@ class Restaurant {
   final String? osmId;
   final String? operator;
   final List<String> cuisines;
+  bool isFavorite;
 
   Restaurant({
     this.restaurantId,
@@ -71,9 +72,10 @@ class Restaurant {
     this.osmId,
     this.operator,
     this.cuisines = const [],
+    this.isFavorite = false,
   });
 
-  factory Restaurant.fromJson(Map<String, dynamic> json, cuisines) {
+  factory Restaurant.fromJson(Map<String, dynamic> json, List<String> cuisines) {
     return Restaurant(
       restaurantId: json['restaurant_id'] as int?,
       name: json['name'] as String?,
@@ -109,7 +111,7 @@ class Restaurant {
       osmEdit: json['osm_edit'] as String?,
       osmId: json['osm_id'] as String?,
       operator: json['operator'] as String?,
-      cuisines: cuisines ?? [],
+      cuisines: cuisines,
     );
   }
 
@@ -153,4 +155,81 @@ class Restaurant {
     };
   }
 
+  Restaurant copyWith({
+    int? restaurantId,
+    String? name,
+    String? type,
+    bool? vegetarian,
+    bool? vegan,
+    bool? delivery,
+    bool? takeaway,
+    String? phone,
+    String? website,
+    String? address,
+    double? latitude,
+    double? longitude,
+    String? openingHours,
+    bool? wheelchairAccessibility,
+    String? internetAccess,
+    bool? smokingAllowed,
+    int? capacity,
+    bool? driveThrough,
+    String? facebook,
+    String? siret,
+    String? department,
+    String? region,
+    String? brand,
+    String? wikidata,
+    String? brandWikidata,
+    int? comInsee,
+    int? codeRegion,
+    int? codeDepartement,
+    String? commune,
+    String? comNom,
+    int? codeCommune,
+    String? osmEdit,
+    String? osmId,
+    String? operator,
+    List<String>? cuisines,
+    bool? isFavorite,
+  }) {
+    return Restaurant(
+      restaurantId: restaurantId ?? this.restaurantId,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      vegetarian: vegetarian ?? this.vegetarian,
+      vegan: vegan ?? this.vegan,
+      delivery: delivery ?? this.delivery,
+      takeaway: takeaway ?? this.takeaway,
+      phone: phone ?? this.phone,
+      website: website ?? this.website,
+      address: address ?? this.address,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      openingHours: openingHours ?? this.openingHours,
+      wheelchairAccessibility: wheelchairAccessibility ?? this.wheelchairAccessibility,
+      internetAccess: internetAccess ?? this.internetAccess,
+      smokingAllowed: smokingAllowed ?? this.smokingAllowed,
+      capacity: capacity ?? this.capacity,
+      driveThrough: driveThrough ?? this.driveThrough,
+      facebook: facebook ?? this.facebook,
+      siret: siret ?? this.siret,
+      department: department ?? this.department,
+      region: region ?? this.region,
+      brand: brand ?? this.brand,
+      wikidata: wikidata ?? this.wikidata,
+      brandWikidata: brandWikidata ?? this.brandWikidata,
+      comInsee: comInsee ?? this.comInsee,
+      codeRegion: codeRegion ?? this.codeRegion,
+      codeDepartement: codeDepartement ?? this.codeDepartement,
+      commune: commune ?? this.commune,
+      comNom: comNom ?? this.comNom,
+      codeCommune: codeCommune ?? this.codeCommune,
+      osmEdit: osmEdit ?? this.osmEdit,
+      osmId: osmId ?? this.osmId,
+      operator: operator ?? this.operator,
+      cuisines: cuisines ?? this.cuisines,
+      isFavorite: isFavorite ?? this.isFavorite,
+    );
+  }
 }

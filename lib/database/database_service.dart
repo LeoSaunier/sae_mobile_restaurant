@@ -11,10 +11,8 @@ class DatabaseService {
     try {
       final data = await _supabase
           .from('Restaurants')
-          .select()
-      .limit(limit);
-
-      print(data);
+          .select('*')
+          .limit(limit);
 
       List<Restaurant> restaurants = [];
       for (var restaurantData in data as List) {
@@ -129,36 +127,16 @@ class DatabaseService {
           .maybeSingle();
 
       if (response == null) {
-        // Aucun utilisateur trouvé avec cet email
         return null;
       }
 
-      // 2. Récupérer le mot de passe haché de l'utilisateur
-      final passwordHash = response['password_hash'];
-
-      // 3. Vérifier si le mot de passe correspond au hachage
-      if (!await _verifyPassword(password, passwordHash)) {
-        // Si le mot de passe ne correspond pas
+      // 2. Vérification du mot de passe
+      if (!await _verifyPassword(password, response['password_hash'])) {
         return null;
       }
 
-      // 4. Récupérer les cuisines et restaurants favoris de l'utilisateur
-      final cuisinesResponse = await _supabase
-          .from('Cuisines')
-          .select('name')
-          .eq('id', response['favorite_cuisines']);
-
-      final cuisines = cuisinesResponse.map<String>((cuisine) => cuisine['name']).toList();
-
-      final restaurantsResponse = await _supabase
-          .from('Restaurants')
-          .select('name')
-          .eq('id', response['favorite_restaurants']);
-
-      final restaurants = restaurantsResponse.map<String>((restaurant) => restaurant['name']).toList();
-
-      // Créer l'objet User avec les cuisines et restaurants favoris
-      return Utilisateur.fromJson(response, cuisines, restaurants);
+      // 3. Conversion de la réponse en Utilisateur
+      return Utilisateur.fromJson(response);
 
     } catch (error) {
       print('Erreur lors de la récupération de l\'utilisateur: $error');
@@ -295,6 +273,72 @@ class DatabaseService {
       print('Erreur lors de la recherche des restaurants: $error');
       return [];
     }
+  }
+
+  Future<void> addFavoriteRestaurant(int userId, int restaurantId) async {
+    await _supabase
+        .from('Utilisateur')
+        .update({
+      'favorite_restaurants': _supabase.rpc('array_append', params: {
+        'favorite_restaurants': restaurantId
+      })
+    })
+        .eq('id', userId);
+  }
+
+  Future<void> removeFavoriteRestaurant(int userId, int restaurantId) async {
+    await _supabase
+        .from('Utilisateur')
+        .update({
+      'favorite_restaurants': _supabase.rpc('array_remove', params: {
+        'favorite_restaurants': restaurantId
+      })
+    })
+        .eq('id', userId);
+  }
+
+  Future<void> addFavoriteCuisine(int userId, String cuisine) async {
+    await _supabase
+        .from('Utilisateur')
+        .update({
+      'favorite_cuisines': _supabase.rpc('array_append', params: {
+        'favorite_cuisines': cuisine
+      })
+    })
+        .eq('id', userId);
+  }
+
+  Future<void> removeFavoriteCuisine(int userId, String cuisine) async {
+    await _supabase
+        .from('Utilisateur')
+        .update({
+      'favorite_cuisines': _supabase.rpc('array_remove', params: {
+        'favorite_cuisines': cuisine
+      })
+    })
+        .eq('id', userId);
+  }
+
+  Future<List<Restaurant>> getFavoriteRestaurants(int userId) async {
+    final response = await _supabase
+        .from('Utilisateur')
+        .select('favorite_restaurants')
+        .eq('id', userId)
+        .single();
+
+    final restaurantIds = (response['favorite_restaurants'] as List<dynamic>).cast<int>();
+
+    if (restaurantIds.isEmpty) return [];
+
+    final restaurantsData = await _supabase
+        .from('Restaurants')
+        .select('*, Restaurants_Cuisines(cuisine_id), Cuisines(name)')
+        .inFilter('restaurant_id', restaurantIds);
+
+    return restaurantsData.map((data) {
+      final cuisines = (data['Cuisines'] as List<dynamic>).map((c) => c['name'] as String).toList();
+      return Restaurant.fromJson(data, cuisines)..isFavorite = true;
+    }).toList();
   }
 
 }

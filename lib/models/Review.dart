@@ -4,6 +4,7 @@ class Review {
   final double rating;
   final String comment;
   final DateTime date;
+  final List<String> photoUrls;
 
   Review({
     required this.restaurantId,
@@ -11,9 +12,10 @@ class Review {
     required this.rating,
     required this.comment,
     required this.date,
+    this.photoUrls = const [],
   });
 
-  // Convertir un objet Review en Map (utile pour la base de données ou API)
+  // Convertir un objet Review en Map
   Map<String, dynamic> toMap() {
     return {
       'restaurant': restaurantId,
@@ -24,7 +26,7 @@ class Review {
     };
   }
 
-  // Créer un objet Review à partir d'une Map (utile pour la base de données ou API)
+  // Créer un objet Review à partir d'une Map
   factory Review.fromMap(Map<String, dynamic> map) {
     return Review(
       restaurantId: map['restaurant'],

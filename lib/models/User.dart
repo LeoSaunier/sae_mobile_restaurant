@@ -4,8 +4,8 @@ class Utilisateur {
   final String email;
   final String passwordHash;
   final String lastName;
-  final List<String> favoriteCuisines;
-  final List<String> favoriteRestaurants;
+  List<String> favoriteCuisines;
+  List<int> favoriteRestaurants;
 
   Utilisateur({
     required this.id,
@@ -17,16 +17,27 @@ class Utilisateur {
     required this.favoriteRestaurants,
   });
 
-  // Factory pour créer un utilisateur à partir de la base de données
-  factory Utilisateur.fromJson(Map<String, dynamic> json, List<String> cuisines, List<String> restaurants) {
+  factory Utilisateur.fromJson(Map<String, dynamic> json) {
     return Utilisateur(
-      id: json['id'],
-      firstName: json['prenom'],
-      email: json['email'],
-      passwordHash: json['password_hash'],
-      lastName: json['nom'],
-      favoriteCuisines: cuisines,
-      favoriteRestaurants: restaurants,
+      id: json['id'] as int,
+      firstName: json['prenom'] as String,
+      email: json['email'] as String,
+      passwordHash: json['password_hash'] as String,
+      lastName: json['nom'] as String,
+      favoriteCuisines: List<String>.from(json['favorite_cuisines'] ?? []),
+      favoriteRestaurants: List<int>.from(json['favorite_restaurants'] ?? []),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'prenom': firstName,
+      'email': email,
+      'password_hash': passwordHash,
+      'nom': lastName,
+      'favorite_cuisines': favoriteCuisines,
+      'favorite_restaurants': favoriteRestaurants,
+    };
   }
 }
