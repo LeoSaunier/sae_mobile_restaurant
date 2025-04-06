@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import '../mytheme.dart';
 import '../viewModel/settingViewModel.dart';
 import '../viewModel/taskViewModel.dart';
-import 'restaurant_liste.dart';
 import '../ecran_settings.dart';
+import 'auth_page.dart'; // Importez votre page d'authentification
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +18,7 @@ Future<void> main() async {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -26,6 +26,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int _index = 0;
+  bool _isLoggedIn = false; // Ajout d'un état pour suivre la connexion
+
   final List<Widget> _vues = <Widget>[
     Column(
       children: [
@@ -38,6 +40,13 @@ class _MyAppState extends State<MyApp> {
   void _onItemTapped(int currentIndex) {
     setState(() {
       _index = currentIndex;
+    });
+  }
+
+  // Méthode pour gérer la connexion réussie
+  void _handleLoginSuccess() {
+    setState(() {
+      _isLoggedIn = true;
     });
   }
 
@@ -54,6 +63,23 @@ class _MyAppState extends State<MyApp> {
           },
         ),
       ],
+      child: Consumer<SettingViewModel>(
+        builder: (context, settingvm, child) {
+          return MaterialApp(
+            title: "TD2",
+            theme: settingvm.isDark ? MyTheme.dark() : MyTheme.light(),
+            home: _isLoggedIn
+                ? _buildMainApp(context)
+                : AuthPage(onLoginSuccess: _handleLoginSuccess),
+          );
+        },
+      ),
+    );
+  }
+  Widget _buildMainApp(BuildContext context) {
+    return Scaffold(
+       appBar: AppBar(),
+      body: _vues[_index],
       child: Consumer<SettingViewModel>(
         builder: (context, settingvm, child) {
           return MaterialApp(
@@ -78,3 +104,4 @@ class _MyAppState extends State<MyApp> {
     );
   }
 }
+

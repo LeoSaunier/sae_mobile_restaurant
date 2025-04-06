@@ -1,13 +1,17 @@
+
+
 class Review {
-  final int restaurantId;
-  final int userId;
+  final int id;
+  final int Idrestaurant;
+  final int Iduser;
   final double rating;
   final String comment;
   final DateTime date;
 
   Review({
-    required this.restaurantId,
-    required this.userId,
+    required this.id,
+    required this.Idrestaurant,
+    required this.Iduser,
     required this.rating,
     required this.comment,
     required this.date,
@@ -16,8 +20,9 @@ class Review {
   // Convertir un objet Review en Map (utile pour la base de données ou API)
   Map<String, dynamic> toMap() {
     return {
-      'restaurant': restaurantId,
-      'user': userId,
+      'id': id,
+      'restaurant': Idrestaurant,
+      'user': Iduser,
       'rating': rating,
       'comment': comment,
       'date': date.toIso8601String(),
@@ -27,8 +32,9 @@ class Review {
   // Créer un objet Review à partir d'une Map (utile pour la base de données ou API)
   factory Review.fromMap(Map<String, dynamic> map) {
     return Review(
-      restaurantId: map['restaurant'],
-      userId: map['user'],
+      id: map['review_id'],
+      Idrestaurant: map['restaurant_id'],
+      Iduser: map['user_id'],
       rating: (map['rating'] as num).toDouble(),
       comment: map['comment'],
       date: DateTime.parse(map['date']),

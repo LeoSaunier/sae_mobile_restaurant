@@ -37,6 +37,10 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
     // Tu devrais ici ajouter la logique pour insérer l'avis dans Supabase
     // Pour le test, on simule localement :
 
+    if (_commentController.text.trim().isEmpty) {
+      return;
+    }
+
     final newReview = Review(
       restaurantId: widget.restaurant.restaurantId!,
       userId: 0, // à remplacer par le vrai user connecté
