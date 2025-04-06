@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:tp2/modele/task.dart';
+import 'package:sae_restaurant/modele/task.dart';
 
 class Detailstache extends StatelessWidget{
   final Task task;

@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 
-import 'package:tp2/mytheme.dart';
-import 'package:tp2/viewModel/settingViewModel.dart';
-import 'package:tp2/viewModel/taskViewModel.dart';
-import 'package:tp2/vue1.dart';
-import 'package:tp2/vue2.dart';
-import 'package:tp2/vue3.dart';
-import 'package:tp2/modele/task.dart';
+import 'package:sae_restaurant/mytheme.dart';
+import 'package:sae_restaurant/viewModel/settingViewModel.dart';
+import 'package:sae_restaurant/viewModel/taskViewModel.dart';
+import 'package:sae_restaurant/vue1.dart';
+import 'package:sae_restaurant/vue2.dart';
+import 'package:sae_restaurant/vue3.dart';
+import 'package:sae_restaurant/modele/task.dart';
 import 'package:provider/provider.dart';
 import 'AddTask.dart';
 import 'addTaskForm.dart';

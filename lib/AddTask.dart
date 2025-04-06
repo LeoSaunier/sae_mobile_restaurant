@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:tp2/viewModel/taskViewModel.dart';
+import 'package:sae_restaurant/viewModel/taskViewModel.dart';
 
 import 'modele/task.dart';
 

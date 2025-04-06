@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:provider/provider.dart';
-import 'package:tp2/viewModel/taskViewModel.dart';
+import 'package:sae_restaurant/viewModel/taskViewModel.dart';
 import 'modele/task.dart';
 
 class AddTaskForm extends StatefulWidget {

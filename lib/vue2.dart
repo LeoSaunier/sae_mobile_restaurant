@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:tp2/modele/task.dart';
-import 'package:tp2/api/api.dart';
+import 'package:sae_restaurant/modele/task.dart';
+import 'package:sae_restaurant/api/api.dart';
 
 class Ecran2 extends StatelessWidget {
   Ecran2({super.key});

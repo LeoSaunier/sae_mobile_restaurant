@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
-import 'package:tp2/modele/task.dart';
+import 'package:sae_restaurant/modele/task.dart';
 
 class MyAPI {
 
