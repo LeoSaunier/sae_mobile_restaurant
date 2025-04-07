@@ -1,8 +1,5 @@
 import 'package:bcrypt/bcrypt.dart';
-<<<<<<< HEAD
-=======
 import 'package:flutter/cupertino.dart';
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/Restaurant.dart';
 import '../models/Review.dart';
@@ -11,36 +8,20 @@ import '../models/User.dart';
 class DatabaseService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-<<<<<<< HEAD
+
   Future<List<Restaurant>> getRestaurants({int limit = 30}) async {
     try {
       final data = await _supabase
           .from('Restaurants')
           .select()
       .limit(limit);
-=======
-  Future<List<Restaurant>> getRestaurants({int page=0, int limit = 30}) async {
-    try {
-      final from = page * limit;
-      final to = from + limit - 1;
-
-
-      final data = await _supabase
-          .from('Restaurants')
-          .select()
-      .range(from, to);
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
 
       print(data);
 
       List<Restaurant> restaurants = [];
       for (var restaurantData in data as List) {
-<<<<<<< HEAD
         final cuisines = await getCuisinesForRestaurant(restaurantData['restaurant_id']);
-=======
-        final cuisines = await getCuisinesForRestaurant(
-            restaurantData['restaurant_id']);
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
+
         restaurants.add(Restaurant.fromJson(restaurantData, cuisines));
       }
       return restaurants;
@@ -56,13 +37,9 @@ class DatabaseService {
           .select('Cuisines(name)')
           .eq('restaurant_id', restaurantId);
 
-<<<<<<< HEAD
+
       return (data as List).map((c) => c['Cuisines']['name'] as String).toList();
-=======
-      return (data as List)
-          .map((c) => c['Cuisines']['name'] as String)
-          .toList();
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
+
     } catch (e) {
       throw Exception('Failed to fetch cuisines for restaurant: $e');
     }
@@ -94,24 +71,13 @@ class DatabaseService {
       }
 
       // Récupérer les noms des cuisines depuis la réponse
-<<<<<<< HEAD
       final cuisinesResponse = response['Restaurants_Cuisines'] as List<dynamic>;
-=======
-      final cuisinesResponse = response['Restaurants_Cuisines'] as List<
-          dynamic>;
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
       final cuisinesNames = cuisinesResponse
           .map((c) => c['cuisine_id'])
           .toList();
 
       final cuisineNamesResponse = response['Cuisines'] as List<dynamic>;
-<<<<<<< HEAD
       final cuisines = cuisineNamesResponse.map((c) => c['name'] as String).toList();
-=======
-      final cuisines = cuisineNamesResponse
-          .map((c) => c['name'] as String)
-          .toList();
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
 
       // Retourner un restaurant avec les cuisines récupérées
       return Restaurant.fromJson(response, cuisines);
@@ -121,10 +87,7 @@ class DatabaseService {
     }
   }
 
-<<<<<<< HEAD
 
-=======
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
   Future<List<Restaurant>> getRestaurantsByCuisine(String cuisine) async {
     try {
       // 1ère requête : Récupérer les restaurants ayant la cuisine spécifiée
@@ -142,13 +105,7 @@ class DatabaseService {
       // Parcourir la réponse et extraire les informations des restaurants et des cuisines
       for (var restaurantData in response) {
         final cuisinesResponse = restaurantData['Cuisines'] as List<dynamic>;
-<<<<<<< HEAD
         final cuisines = cuisinesResponse.map((c) => c['name'] as String).toList();
-=======
-        final cuisines = cuisinesResponse
-            .map((c) => c['name'] as String)
-            .toList();
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
 
         // Créer un objet Restaurant avec les données récupérées
         final restaurant = Restaurant.fromJson(restaurantData, cuisines);
@@ -170,48 +127,6 @@ class DatabaseService {
   Future<Utilisateur?> getUser(String email, String password) async {
     try {
       // 1. Requête pour récupérer l'utilisateur avec l'email
-<<<<<<< HEAD
-      final response = await _supabase
-          .from('Utilisateur')
-          .select('*')
-          .eq('email', email)
-          .maybeSingle();
-
-      if (response == null) {
-        // Aucun utilisateur trouvé avec cet email
-        return null;
-      }
-
-      // 2. Récupérer le mot de passe haché de l'utilisateur
-      final passwordHash = response['password_hash'];
-
-      // 3. Vérifier si le mot de passe correspond au hachage
-      if (!await _verifyPassword(password, passwordHash)) {
-        // Si le mot de passe ne correspond pas
-        return null;
-      }
-
-      // 4. Récupérer les cuisines et restaurants favoris de l'utilisateur
-      final cuisinesResponse = await _supabase
-          .from('Cuisines')
-          .select('name')
-          .eq('id', response['favorite_cuisines']);
-
-      final cuisines = cuisinesResponse.map<String>((cuisine) => cuisine['name']).toList();
-
-      final restaurantsResponse = await _supabase
-          .from('Restaurants')
-          .select('name')
-          .eq('id', response['favorite_restaurants']);
-
-      final restaurants = restaurantsResponse.map<String>((restaurant) => restaurant['name']).toList();
-
-      // Créer l'objet User avec les cuisines et restaurants favoris
-      return Utilisateur.fromJson(response, cuisines, restaurants);
-
-    } catch (error) {
-      print('Erreur lors de la récupération de l\'utilisateur: $error');
-=======
       final userResponse = await _supabase
           .from('Utilisateur')
           .select('user_id, prenom, nom, email, password_hash') // Liste explicite des champs
@@ -280,14 +195,12 @@ class DatabaseService {
     } catch (error, stackTrace) {
       print('Erreur complète dans getUser: $error');
       print('Stack trace: $stackTrace');
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
       return null;
     }
   }
 
   Future<Utilisateur?> registerUser(String prenom, String nom, String email, String password) async {
     try {
-<<<<<<< HEAD
       // 1. Hachage du mot de passe (vous pouvez aussi utiliser une méthode de hachage côté serveur si nécessaire)
       final hashedPassword = await hashPassword(password);
 
@@ -320,46 +233,7 @@ class DatabaseService {
       final hashedPassword = BCrypt.hashpw(password, salt);  // Hacher le mot de passe avec le salt
       return hashedPassword;
     }
-=======
-      final hashedPassword = await hashPassword(password);
 
-      final response = await _supabase
-          .from('Utilisateur')
-          .insert({
-        'prenom': prenom,
-        'nom': nom,
-        'email': email,
-        'password_hash': hashedPassword,
-      })
-          .select('*') // Spécifiez explicitement les colonnes à retourner
-          .single();
-
-      // Debug: affichez la réponse reçue
-      print('Réponse de Supabase: $response');
-
-      return Utilisateur.fromJson(
-        response,
-        [],
-        [],
-      );
-    } on PostgrestException catch (e) {
-      print('Erreur Supabase: ${e.message}');
-      return null;
-    } catch (error, stackTrace) {
-      print('Erreur complète: $error');
-      print('Stack trace: $stackTrace');
-      return null;
-    }
-  }
-
-  Future<String> hashPassword(String password) async {
-    // bcrypt pour générer le hash du mot de passe
-    final salt = BCrypt.gensalt(); // Générer un salt
-    final hashedPassword = BCrypt.hashpw(
-        password, salt); // Hacher le mot de passe avec le salt
-    return hashedPassword;
-  }
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
 
   Future<double?> getRestaurantRating(int restaurantId) async {
     final response = await _supabase
@@ -393,12 +267,8 @@ class DatabaseService {
       id: response['id'],
       firstName: response['prenom'],
       email: response['email'],
-<<<<<<< HEAD
-      passwordHash: '', // Optionnel : Ne pas stocker le hash dans l'objet
-=======
       passwordHash: '',
       // Optionnel : Ne pas stocker le hash dans l'objet
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
       lastName: response['nom'],
       favoriteCuisines: [],
       favoriteRestaurants: [],
@@ -422,14 +292,9 @@ class DatabaseService {
     for (var reviewJson in response) {
       // Créer l'objet Review et l'ajouter à la liste
       reviewsList.add(Review(
-<<<<<<< HEAD
-        restaurantId: reviewJson['restaurant_id'],
-        userId: reviewJson['user_id'],
-=======
         id: reviewJson['reviews_id'],
         Idrestaurant: reviewJson['restaurant_id'],
         Iduser: reviewJson['user_id'],
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
         rating: reviewJson['rating'],
         comment: reviewJson['comment'],
         date: DateTime.parse(reviewJson['created_at']),
@@ -438,34 +303,6 @@ class DatabaseService {
 
     return reviewsList;
   }
-<<<<<<< HEAD
-  
-  Future<List<Restaurant>> rechercheRestaurant(String query) async {
-    try {
-      // Requête pour rechercher uniquement par nom
-      final response = await _supabase
-          .from('Restaurants')
-          .select('*, Restaurants_Cuisines(cuisine_id), Cuisines(name)')
-          .ilike('name', '%$query%');  // Recherche uniquement par nom avec une correspondance partielle
-
-      if (response.isEmpty) {
-        return [];
-      }
-
-      List<Restaurant> restaurants = [];
-
-      for (var restaurantData in response) {
-        final cuisinesResponse = restaurantData['Cuisines'] as List<dynamic>;
-        final cuisines = cuisinesResponse.map((c) => c['name'] as String).toList();
-
-        // Créer un objet Restaurant avec les cuisines récupérées
-        restaurants.add(Restaurant.fromJson(restaurantData, cuisines));
-      }
-
-      return restaurants;
-    } catch (error) {
-      print('Erreur lors de la recherche des restaurants: $error');
-=======
 
   // Fonction pour récupérer tous les avis d'un utilisateur en se basant uniquement sur les ids
   Future<List<Review>> getReviewsUser(int userId) async {
@@ -669,14 +506,10 @@ class DatabaseService {
       return favoriteRestaurants;
     } catch (error) {
       print('Erreur lors de la récupération des restaurants favoris : $error');
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
       return [];
     }
   }
 
-<<<<<<< HEAD
-}
-=======
   Future<void> addRestaurantFavorite(int userId, int restaurantId) async {
     try {
       final response = await _supabase.from('Restaurant_Favoris').upsert([
@@ -766,6 +599,50 @@ class DatabaseService {
     }
   }
 
-}
+  Future<List<Restaurant>> rechercheRestaurant(String query) async {
+    try {
+      // Requête pour rechercher uniquement par nom
+      final response = await _supabase
+          .from('Restaurants')
+          .select('*, Restaurants_Cuisines(cuisine_id), Cuisines(name)')
+          .ilike('name', '%$query%');  // Recherche uniquement par nom avec une correspondance partielle
 
->>>>>>> d7e73fad982e3de159943406993c5a53e83d56f6
+      if (response.isEmpty) {
+        return [];
+      }
+
+      List<Restaurant> restaurants = [];
+
+      for (var restaurantData in response) {
+        final cuisinesResponse = restaurantData['Cuisines'] as List<dynamic>;
+        final cuisines = cuisinesResponse.map((c) => c['name'] as String).toList();
+
+        // Créer un objet Restaurant avec les cuisines récupérées
+        restaurants.add(Restaurant.fromJson(restaurantData, cuisines));
+      }
+
+      return restaurants;
+    } catch (error) {
+      print('Erreur lors de la recherche des restaurants: $error');
+      return [];
+    }
+  }
+
+  Future<int?> getMaxId() async {
+    try {
+      final response = await _supabase
+          .from('Reviews')
+          .select('review_id') // remplace 'review_id' par ton nom de colonne si besoin
+          .order('review_id', ascending: false)
+          .limit(1)
+          .single();
+
+      return response['review_id'] as int?;
+    } catch (e) {
+      print('Erreur lors de la récupération du max ID: $e');
+      return null;
+    }
+  }
+
+
+}

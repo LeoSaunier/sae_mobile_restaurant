@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:sae_restaurant/modele/settingRepositery.dart';
 import 'package:sae_restaurant/viewModel/settingViewModel.dart';
 import 'package:provider/provider.dart';
 

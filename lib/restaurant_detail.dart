@@ -36,14 +36,16 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
   void _submitReview() async {
     // Tu devrais ici ajouter la logique pour insérer l'avis dans Supabase
     // Pour le test, on simule localement :
+    var db = DatabaseService();
 
     if (_commentController.text.trim().isEmpty) {
       return;
     }
 
     final newReview = Review(
-      restaurantId: widget.restaurant.restaurantId!,
-      userId: 0, // à remplacer par le vrai user connecté
+      id: (await db.getMaxId() ?? 0) + 1,
+      Idrestaurant: widget.restaurant.restaurantId!,
+      Iduser: 0, // à remplacer par le vrai user connecté
       rating: _rating,
       comment: _commentController.text,
       date: DateTime.now(),
