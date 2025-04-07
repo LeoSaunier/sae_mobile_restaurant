@@ -201,31 +201,36 @@ class DatabaseService {
 
   Future<Utilisateur?> registerUser(String prenom, String nom, String email, String password) async {
     try {
-      // 1. Hachage du mot de passe (vous pouvez aussi utiliser une méthode de hachage côté serveur si nécessaire)
       final hashedPassword = await hashPassword(password);
 
-      // 2. Insertion de l'utilisateur dans la base de données Supabase
-      final response = await _supabase.from('Utilisateur').insert([
-        {
-          'prenom': prenom,
-          'nom': nom,
-          'email': email,
-          'password_hash': hashedPassword,
-        }
-      ]);
+      final response = await _supabase
+          .from('Utilisateur')
+          .insert({
+        'prenom': prenom,
+        'nom': nom,
+        'email': email,
+        'password_hash': hashedPassword,
+      })
+          .select('*') // Spécifiez explicitement les colonnes à retourner
+          .single();
 
-      if (response.error != null) {
-        print('Erreur lors de l\'insertion de l\'utilisateur: ${response.error?.message}');
-        return null;
-      }
+      // Debug: affichez la réponse reçue
+      print('Réponse de Supabase: $response');
 
-      // 3. Récupérer les informations de l'utilisateur
-      return await getUser(email, password);
-    } catch (error) {
-      print('Erreur lors de l\'enregistrement de l\'utilisateur: $error');
+      return Utilisateur.fromJson(
+        response,
+        [],
+        [],
+      );
+    } on PostgrestException catch (e) {
+      print('Erreur Supabase: ${e.message}');
+      return null;
+    } catch (error, stackTrace) {
+      print('Erreur complète: $error');
+      print('Stack trace: $stackTrace');
       return null;
     }
-    }
+  }
 
     Future<String> hashPassword(String password) async {
       // bcrypt pour générer le hash du mot de passe
