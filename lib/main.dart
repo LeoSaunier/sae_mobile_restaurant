@@ -6,6 +6,7 @@ import '../mytheme.dart';
 import '../viewModel/settingViewModel.dart';
 import '../ecran_settings.dart';
 import 'auth_page.dart'; // Page d'authentification
+import '/providers/user_provider.dart'; // Import du nouveau provider
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +52,7 @@ class _MyAppState extends State<MyApp> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => SettingViewModel()),
+        ChangeNotifierProvider(create: (_) => UserProvider()), // Ajout de UserProvider
       ],
       child: Consumer<SettingViewModel>(
         builder: (context, settingvm, _) {

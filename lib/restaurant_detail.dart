@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:provider/provider.dart';
 import '../models/Restaurant.dart';
 import '../database/database_service.dart';
 import '../models/Review.dart';
+import 'providers/user_provider.dart';
 
 class RestaurantDetail extends StatefulWidget {
   final Restaurant restaurant;
@@ -26,38 +28,76 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
     _loadReviews();
   }
 
-  Future<void> _loadReviews() async {
-    final reviews = await _db.getRestaurantReviews(widget.restaurant.restaurantId!);
+  void _loadReviews() async {
+    var db = DatabaseService();
+    final reviews = await db.getRestaurantReviews(widget.restaurant.restaurantId!);
     setState(() {
       _reviews = reviews;
     });
   }
 
   void _submitReview() async {
-    // Tu devrais ici ajouter la logique pour insérer l'avis dans Supabase
-    // Pour le test, on simule localement :
-    var db = DatabaseService();
-
+    // Vérifier que le commentaire n'est pas vide
     if (_commentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez entrer un commentaire')),
+      );
       return;
     }
 
-    final newReview = Review(
-      id: (await db.getMaxId() ?? 0) + 1,
-      Idrestaurant: widget.restaurant.restaurantId!,
-      Iduser: 0, // à remplacer par le vrai user connecté
-      rating: _rating,
-      comment: _commentController.text,
-      date: DateTime.now(),
-    );
+    // Récupérer l'utilisateur connecté via le Provider
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentUser = userProvider.currentUser;
+    
+    if (currentUser == null) {
+      // Gérer le cas où aucun utilisateur n'est connecté
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vous devez être connecté pour soumettre un avis')),
+      );
+      return;
+    }
 
-    setState(() {
-      _reviews.add(newReview);
-      _commentController.clear();
-      _rating = 3.0;
-    });
+    try {
+      // Utiliser la méthode addReview de votre DatabaseService
+      await _db.addReview(
+        widget.restaurant.restaurantId!,
+        currentUser.id,
+        _rating,
+        _commentController.text.trim(),
+      );
 
-    // TODO: Ajoute une fonction dans DatabaseService pour insérer l’avis
+      // Mettre à jour l'interface utilisateur si la soumission a réussi
+      setState(() {
+        // Créer un nouvel objet Review à ajouter à votre liste locale
+        final newReview = Review(
+          id: 0, // L'ID sera attribué par la base de données
+          Idrestaurant: widget.restaurant.restaurantId!,
+          Iduser: currentUser.id,
+          rating: _rating,
+          comment: _commentController.text.trim(),
+          date: DateTime.now(),
+        );
+        
+        _reviews.add(newReview);
+        _commentController.clear();
+        _rating = 3.0;
+      });
+
+      // Afficher un message de succès
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Avis soumis avec succès')),
+      );
+      
+      // Recharger les avis depuis la base de données
+      _loadReviews();
+      
+    } catch (e) {
+      // Gérer l'erreur
+      print('Erreur lors de la soumission de l\'avis: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Échec de la soumission de l\'avis: ${e.toString()}')),
+      );
+    }
   }
 
   @override
