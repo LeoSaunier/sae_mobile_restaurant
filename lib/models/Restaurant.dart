@@ -117,4 +117,3 @@ class Restaurant {
       isFavorite: isFavorite ?? this.isFavorite,
     );
   }
-}

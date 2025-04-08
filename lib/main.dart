@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:tp2/services/local_storage_service.dart';
-import 'package:tp2/viewModel/favorites_viewmodel.dart';
-import 'package:tp2/viewModel/settingViewModel.dart';
-import 'package:tp2/viewModel/taskViewModel.dart';
-import 'package:tp2/ecran_settings.dart';
-import 'package:tp2/restaurant_liste.dart';
-import 'package:tp2/ecran_favoris.dart';
-import 'package:tp2/theme/mytheme.dart';
+import 'package:sae_restaurant/services/local_storage_service.dart';
+import 'package:sae_restaurant/viewModel/favorites_viewmodel.dart';
+import 'package:sae_restaurant/viewModel/settingViewModel.dart';
+import 'package:sae_restaurant/viewModel/taskViewModel.dart';
+import 'package:sae_restaurant/ecran_settings.dart';
+import 'package:sae_restaurant/restaurant_liste.dart';
+import 'package:sae_restaurant/ecran_favoris.dart';
+import 'package:sae_restaurant/theme/mytheme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

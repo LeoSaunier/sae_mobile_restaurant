@@ -17,15 +17,32 @@ class Utilisateur {
     required this.favoriteRestaurants,
   });
 
-  factory Utilisateur.fromJson(Map<String, dynamic> json) {
+  // Factory pour créer un utilisateur à partir de la base de données
+  factory Utilisateur.fromJson(
+      Map<String, dynamic> json,
+      List<String> favoriteCuisines,
+      List<String> favoriteRestaurants,
+      ) {
+    // Conversion robuste de l'ID
+    final dynamic id = json['id'];
+    final int finalId;
+
+    if (id is int) {
+      finalId = id;
+    } else if (id is String) {
+      finalId = int.tryParse(id) ?? 0;
+    } else {
+      finalId = 0;
+    }
+
     return Utilisateur(
-      id: json['id'] as int,
-      firstName: json['prenom'] as String,
-      email: json['email'] as String,
-      passwordHash: json['password_hash'] as String,
-      lastName: json['nom'] as String,
-      favoriteCuisines: List<String>.from(json['favorite_cuisines'] ?? []),
-      favoriteRestaurants: List<int>.from(json['favorite_restaurants'] ?? []),
+      id: finalId,
+      firstName: json['prenom']?.toString() ?? '',
+      lastName: json['nom']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      passwordHash: json['password_hash']?.toString() ?? '',
+      favoriteCuisines: favoriteCuisines,
+      favoriteRestaurants: favoriteRestaurants,
     );
   }
 

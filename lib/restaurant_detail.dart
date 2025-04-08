@@ -20,32 +20,78 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
   double _rating = 3.0;
   List<Review> _reviews = [];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadReviews();
+  final DatabaseService _db = DatabaseService();
+
+  Future<List<Map<String, dynamic>>> _loadReviewsWithUsernames() async {
+    try {
+      var reviews = await _db.getRestaurantReviews(widget.restaurant.restaurantId!);
+      List<Map<String, dynamic>> reviewsWithUsernames = [];
+      for (var review in reviews) {
+        String? username = await _db.getUserNameById(review.Iduser); 
+        reviewsWithUsernames.add({
+          'review': review,
+          'username': username ?? "Utilisateur inconnu",
+        });
+      }
+      return reviewsWithUsernames;
+    } catch (e) {
+      print("Erreur lors du chargement des avis avec noms: $e");
+      return [];
+    }
   }
 
-  Future<void> _loadReviews() async {
-    final reviews = await DatabaseService().getRestaurantReviews(widget.restaurant.restaurantId!);
-    setState(() {
-      _reviews = reviews;
-    });
-  }
+  void _submitReview() async {
+    //if (_commentController.text.trim().isEmpty) {
+    //  ScaffoldMessenger.of(context).showSnackBar(
+    //    const SnackBar(content: Text('Veuillez entrer un commentaire')),
+    //  );
+    //  return;
+    //}
 
-  void _submitReview() {
-    if (_commentController.text.isEmpty) return;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final currentUser = userProvider.currentUser;
 
-    setState(() {
-      _reviews.add(Review(
-        restaurantId: widget.restaurant.restaurantId!,
-        userId: 0, // Remplacez par l'ID utilisateur réel
-        rating: _rating,
-        comment: _commentController.text,
-        date: DateTime.now(),
-      ));
-      _commentController.clear();
-    });
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vous devez être connecté pour soumettre un avis')),
+      );
+      return;
+    }
+
+    final restaurantId = widget.restaurant.restaurantId;
+    final userId = currentUser.id;
+
+    if (restaurantId == null || userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible de soumettre l\'avis : identifiants manquants')),
+      );
+      return;
+    }
+
+    try {
+      await _db.addReview(
+        restaurantId,
+        userId,
+        _rating,
+        _commentController.text.trim(),
+      );
+
+      setState(() {
+        _commentController.clear();
+        _rating = 3.0;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Avis soumis avec succès')),
+      );
+
+      setState(() {});
+    } catch (e) {
+      print('Erreur lors de la soumission de l\'avis: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Échec de la soumission de l\'avis: ${e.toString()}')),
+      );
+    }
   }
 
   @override
@@ -156,7 +202,7 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
                   initialRating: _rating,
                   minRating: 1,
                   direction: Axis.horizontal,
-                  allowHalfRating: true,
+                  allowHalfRating: false, 
                   itemCount: 5,
                   itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
                   itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),

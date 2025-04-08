@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 
-import '../modele/settingRepositery.dart';
+import '../models/settingRepository.dart';
 
 
 class SettingViewModel extends ChangeNotifier {

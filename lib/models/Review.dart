@@ -1,39 +1,44 @@
 class Review {
-  final int restaurantId;
-  final int userId;
-  final double rating;
+  final int? id;
+  final int? Idrestaurant;
+  final int? Iduser;
+  final double? rating;
   final String comment;
   final DateTime date;
   final List<String> photoUrls;
 
   Review({
-    required this.restaurantId,
-    required this.userId,
+    required this.id,
+    required this.Idrestaurant,
+    required this.Iduser,
     required this.rating,
     required this.comment,
     required this.date,
     this.photoUrls = const [],
   });
 
-  // Convertir un objet Review en Map
   Map<String, dynamic> toMap() {
     return {
-      'restaurant': restaurantId,
-      'user': userId,
+      'id': id,
+      'restaurant': Idrestaurant,
+      'user': Iduser,
       'rating': rating,
       'comment': comment,
       'date': date.toIso8601String(),
     };
   }
 
-  // Créer un objet Review à partir d'une Map
   factory Review.fromMap(Map<String, dynamic> map) {
+    print('DEBUG: Donnée reçue du backend => $map');
+
     return Review(
-      restaurantId: map['restaurant'],
-      userId: map['user'],
-      rating: (map['rating'] as num).toDouble(),
-      comment: map['comment'],
-      date: DateTime.parse(map['date']),
+      id: map['review_id'] ?? 0,
+      Idrestaurant: map['restaurant_id'] ?? 0,
+      Iduser: map['user_id'] ?? 0,
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      comment: map['comment'] ?? '',
+      date: DateTime.tryParse(map['created_at'] ?? map['date'] ?? '') ?? DateTime.now(),
     );
   }
+
 }
