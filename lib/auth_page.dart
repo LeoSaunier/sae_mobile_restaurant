@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'database/database_service.dart';
 import 'database/database_service.dart';
+import 'providers/user_provider.dart';
 
 class AuthPage extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -39,9 +41,13 @@ class _AuthPageState extends State<AuthPage> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      user.toString();
+
       if (user != null) {
-        widget.onLoginSuccess(); // Appel du callback après connexion réussie
+        // 🔥 Ajout de l'utilisateur au UserProvider
+        Provider.of<UserProvider>(context, listen: false).setCurrentUser(user);
+
+        // 🔓 Puis déclencher la navigation vers l'app principale
+        widget.onLoginSuccess();
       } else {
         _showMessage('Email ou mot de passe incorrect');
       }

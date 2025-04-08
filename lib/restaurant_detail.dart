@@ -20,79 +20,74 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
   double _rating = 3.0;
 
   final DatabaseService _db = DatabaseService();
-  List<Review> _reviews = [];
 
-  @override
-  void initState() {
-    super.initState();
-    _loadReviews();
-  }
+  Future<List<Map<String, dynamic>>> _loadReviewsWithUsernames() async {
+    try {
+      var reviews = await _db.getRestaurantReviews(widget.restaurant.restaurantId!);
 
-  void _loadReviews() async {
-    var db = DatabaseService();
-    final reviews = await db.getRestaurantReviews(widget.restaurant.restaurantId!);
-    setState(() {
-      _reviews = reviews;
-    });
+      
+      List<Map<String, dynamic>> reviewsWithUsernames = [];
+      for (var review in reviews) {
+        String? username = await _db.getUserNameById(review.Iduser); 
+        reviewsWithUsernames.add({
+          'review': review,
+          'username': username ?? "Utilisateur inconnu",
+        });
+      }
+      return reviewsWithUsernames;
+    } catch (e) {
+      print("Erreur lors du chargement des avis avec noms: $e");
+      return [];
+    }
   }
 
   void _submitReview() async {
-    // Vérifier que le commentaire n'est pas vide
-    if (_commentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez entrer un commentaire')),
-      );
-      return;
-    }
+    //if (_commentController.text.trim().isEmpty) {
+    //  ScaffoldMessenger.of(context).showSnackBar(
+    //    const SnackBar(content: Text('Veuillez entrer un commentaire')),
+    //  );
+    //  return;
+    //}
 
-    // Récupérer l'utilisateur connecté via le Provider
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final currentUser = userProvider.currentUser;
-    
+
     if (currentUser == null) {
-      // Gérer le cas où aucun utilisateur n'est connecté
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vous devez être connecté pour soumettre un avis')),
       );
       return;
     }
 
+    final restaurantId = widget.restaurant.restaurantId;
+    final userId = currentUser.id;
+
+    if (restaurantId == null || userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible de soumettre l\'avis : identifiants manquants')),
+      );
+      return;
+    }
+
     try {
-      // Utiliser la méthode addReview de votre DatabaseService
       await _db.addReview(
-        widget.restaurant.restaurantId!,
-        currentUser.id,
+        restaurantId,
+        userId,
         _rating,
         _commentController.text.trim(),
       );
 
-      // Mettre à jour l'interface utilisateur si la soumission a réussi
       setState(() {
-        // Créer un nouvel objet Review à ajouter à votre liste locale
-        final newReview = Review(
-          id: 0, // L'ID sera attribué par la base de données
-          Idrestaurant: widget.restaurant.restaurantId!,
-          Iduser: currentUser.id,
-          rating: _rating,
-          comment: _commentController.text.trim(),
-          date: DateTime.now(),
-        );
-        
-        _reviews.add(newReview);
         _commentController.clear();
         _rating = 3.0;
       });
 
-      // Afficher un message de succès
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Avis soumis avec succès')),
       );
-      
-      // Recharger les avis depuis la base de données
-      _loadReviews();
-      
+
+      setState(() {});
     } catch (e) {
-      // Gérer l'erreur
       print('Erreur lors de la soumission de l\'avis: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Échec de la soumission de l\'avis: ${e.toString()}')),
@@ -145,22 +140,51 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
                   Divider(),
                   Text("Avis des utilisateurs", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   SizedBox(height: 10),
-                  ..._reviews.map((review) => ListTile(
-                        leading: Icon(Icons.person),
-                        title: Row(
-                          children: [
-                            RatingBarIndicator(
-                              rating: review.rating,
-                              itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
-                              itemCount: 5,
-                              itemSize: 18,
-                            ),
-                            SizedBox(width: 8),
-                            Text(review.comment),
-                          ],
-                        ),
-                        subtitle: Text("${review.date.toLocal()}".split(' ')[0]),
-                      )),
+
+                  FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _loadReviewsWithUsernames(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Erreur: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text("Aucun avis disponible."));
+                      } else {
+                        var reviewsWithUsernames = snapshot.data!;
+                        return Column(
+                          children: reviewsWithUsernames.map((entry) {
+                            var review = entry['review'] as Review;
+                            var username = entry['username'] as String;
+
+                            return ListTile(
+                              leading: Icon(Icons.person),
+                              title: Text(username, style: TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      RatingBarIndicator(
+                                        rating: review.rating ?? 0.0,
+                                        itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
+                                        itemCount: 5,
+                                        itemSize: 18,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Expanded(child: Text(review.comment)),
+                                    ],
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text("${review.date.toLocal()}".split(' ')[0]),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      }
+                    },
+                  ),
                 ],
               ),
             ),
@@ -174,7 +198,7 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
                   initialRating: _rating,
                   minRating: 1,
                   direction: Axis.horizontal,
-                  allowHalfRating: true,
+                  allowHalfRating: false, 
                   itemCount: 5,
                   itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
                   itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),

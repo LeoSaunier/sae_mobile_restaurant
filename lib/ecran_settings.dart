@@ -44,7 +44,6 @@ class _EcranSettingsState extends State<EcranSettings> {
   }
 
   _onToggle(bool value) {
-    //debugPrint('value $value');
     setState(() {
       _dark = !_dark;
       context.read<SettingViewModel>().isDark = _dark;

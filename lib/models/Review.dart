@@ -1,10 +1,8 @@
-
-
 class Review {
-  final int id;
-  final int Idrestaurant;
-  final int Iduser;
-  final double rating;
+  final int? id;
+  final int? Idrestaurant;
+  final int? Iduser;
+  final double? rating;
   final String comment;
   final DateTime date;
 
@@ -17,7 +15,6 @@ class Review {
     required this.date,
   });
 
-  // Convertir un objet Review en Map (utile pour la base de données ou API)
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -29,15 +26,17 @@ class Review {
     };
   }
 
-  // Créer un objet Review à partir d'une Map (utile pour la base de données ou API)
   factory Review.fromMap(Map<String, dynamic> map) {
+    print('DEBUG: Donnée reçue du backend => $map');
+
     return Review(
-      id: map['review_id'],
-      Idrestaurant: map['restaurant_id'],
-      Iduser: map['user_id'],
-      rating: (map['rating'] as num).toDouble(),
-      comment: map['comment'],
-      date: DateTime.parse(map['date']),
+      id: map['review_id'] ?? 0,
+      Idrestaurant: map['restaurant_id'] ?? 0,
+      Iduser: map['user_id'] ?? 0,
+      rating: (map['rating'] as num?)?.toDouble() ?? 0.0,
+      comment: map['comment'] ?? '',
+      date: DateTime.tryParse(map['created_at'] ?? map['date'] ?? '') ?? DateTime.now(),
     );
   }
+
 }

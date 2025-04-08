@@ -334,24 +334,21 @@ class DatabaseService {
 
     return reviewsList;
   }
-
-  Future<void> addReview(int restaurantId, int userId, double rating,
-      String comment) async {
+  
+  Future<void> addReview(int restaurantId, int userId, double rating, String comment) async {
     final response = await _supabase
         .from('Reviews')
-        .insert([
-      {
-        'restaurant_id': restaurantId,
-        'user_id': userId,
-        'rating': rating,
-        'comment': comment,
-        'created_at': DateTime.now().toIso8601String()
-        // Optionnel si tu veux définir la date
-      }
-    ]);
+        .insert({
+          'restaurant_id': restaurantId,
+          'user_id': userId,
+          'rating': rating,
+          'comment': comment,
+          'created_at': DateTime.now().toIso8601String(),
+        })
+        .select('restaurant_id, user_id, rating, comment, created_at'); 
 
-    if (response.error != null) {
-      throw Exception('Failed to add review: ${response.error!.message}');
+    if (response.isEmpty) {
+      throw Exception('Échec de l\'ajout de l\'avis : aucune réponse reçue.');
     }
   }
 
@@ -561,7 +558,7 @@ class DatabaseService {
         'comment': updatedReview.comment,
         'date': updatedReview.date.toIso8601String(),
       })
-          .eq('review_id', updatedReview.id);
+          .eq('review_id', updatedReview.id as Object);
 
       return response.error == null;
     } catch (e) {
@@ -575,7 +572,7 @@ class DatabaseService {
       final response = await _supabase
           .from('Reviews')
           .delete()
-          .eq('review_id', review.id);
+          .eq('review_id', review.id as Object);
 
       return response.error == null;
     } catch (e) {
@@ -645,6 +642,22 @@ class DatabaseService {
       return response['review_id'] as int?;
     } catch (e) {
       print('Erreur lors de la récupération du max ID: $e');
+      return null;
+    }
+  }
+
+   Future<String?> getUserNameById(int? userId) async {
+    try {
+      final response = await _supabase
+          .from('Utilisateur')
+          .select('prenom') // Assurez-vous que 'prenom' est le bon nom de champ
+          .eq('user_id', userId as Object)
+          .single();
+
+      print('Réponse Supabase : $response'); // Inspecter la réponse brute
+      return response['prenom']?.toString();
+    } catch (e) {
+      print('Erreur lors de la récupération du nom d\'utilisateur : $e');
       return null;
     }
   }
