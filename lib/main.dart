@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:sae_restaurant/services/local_storage_service.dart';
-import 'package:sae_restaurant/viewModel/favorites_viewmodel.dart';
-import 'package:sae_restaurant/viewModel/settingViewModel.dart';
-import 'package:sae_restaurant/ecran_settings.dart';
-import 'package:sae_restaurant/restaurant_liste.dart';
-import 'package:sae_restaurant/ecran_favoris.dart';
-import 'package:sae_restaurant/theme/mytheme.dart';
-import 'package:sae_restaurant/providers/user_provider.dart';
+import 'auth_page.dart';
+import 'ecran_favoris.dart';
+import 'ecran_settings.dart';
+import 'providers/user_provider.dart';
+import 'restaurant_liste.dart';
+import 'services/local_storage_service.dart';
+import 'theme/mytheme.dart';
+import 'viewModel/favorites_viewmodel.dart';
+import 'viewModel/settingViewModel.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,40 +48,46 @@ class _MyAppState extends State<MyApp> {
   final List<Widget> _screens = [
     const RestaurantListe(),
     const FavoritesScreen(),
-    EcranSettings(),
+    const EcranSettings(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+
     return Consumer<SettingViewModel>(
-      builder: (context, settings, child) {
+      builder: (context, settings, _) {
         return MaterialApp(
           title: 'Mon Restaurant App',
           debugShowCheckedModeBanner: false,
           theme: settings.isDark ? MyTheme.dark() : MyTheme.light(),
-          home: Scaffold(
-            body: _screens[_currentIndex],
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: _currentIndex,
-              onTap: (index) => setState(() => _currentIndex = index),
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.restaurant),
-                  label: 'Restaurants',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.favorite),
-                  label: 'Favoris',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.settings),
-                  label: 'Paramètres',
-                ),
-              ],
-            ),
-          ),
+          home: userProvider.isLoggedIn ? _buildMainApp() : const AuthPage(),
         );
       },
+    );
+  }
+
+  Widget _buildMainApp() {
+    return Scaffold(
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.restaurant),
+            label: 'Restaurants',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite),
+            label: 'Favoris',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Paramètres',
+          ),
+        ],
+      ),
     );
   }
 }
