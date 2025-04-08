@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:provider/provider.dart';
 import '../models/Restaurant.dart';
-import '../database/database_service.dart';
 import '../models/Review.dart';
-import 'providers/user_provider.dart';
+import '../database/database_service.dart';
+import '../viewModel/favorites_viewmodel.dart';
+import '../providers/user_provider.dart';
 
 class RestaurantDetail extends StatefulWidget {
   final Restaurant restaurant;
@@ -18,14 +19,12 @@ class RestaurantDetail extends StatefulWidget {
 class _RestaurantDetailState extends State<RestaurantDetail> {
   final TextEditingController _commentController = TextEditingController();
   double _rating = 3.0;
-
+  
   final DatabaseService _db = DatabaseService();
 
   Future<List<Map<String, dynamic>>> _loadReviewsWithUsernames() async {
     try {
       var reviews = await _db.getRestaurantReviews(widget.restaurant.restaurantId!);
-
-      
       List<Map<String, dynamic>> reviewsWithUsernames = [];
       for (var review in reviews) {
         String? username = await _db.getUserNameById(review.Iduser); 
@@ -42,13 +41,6 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
   }
 
   void _submitReview() async {
-    //if (_commentController.text.trim().isEmpty) {
-    //  ScaffoldMessenger.of(context).showSnackBar(
-    //    const SnackBar(content: Text('Veuillez entrer un commentaire')),
-    //  );
-    //  return;
-    //}
-
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final currentUser = userProvider.currentUser;
 
@@ -62,12 +54,7 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
     final restaurantId = widget.restaurant.restaurantId;
     final userId = currentUser.id;
 
-    if (restaurantId == null || userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossible de soumettre l\'avis : identifiants manquants')),
-      );
-      return;
-    }
+    if (restaurantId == null || userId == null) return;
 
     try {
       await _db.addReview(
@@ -85,104 +72,124 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Avis soumis avec succès')),
       );
-
-      setState(() {});
     } catch (e) {
-      print('Erreur lors de la soumission de l\'avis: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Échec de la soumission de l\'avis: ${e.toString()}')),
+        SnackBar(content: Text('Échec de la soumission: ${e.toString()}')),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final restaurant = widget.restaurant;
+    final favoritesVM = Provider.of<FavoritesViewModel>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(restaurant.name ?? "Détails")),
+      appBar: AppBar(title: Text(widget.restaurant.name ?? "Détails")),
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREgDDOHY30gdRmIt2Q5sjLTlav9OUdNMtlqKEV-QXbGFPi2W-egDo8pJU5Kw&s",
-                      width: double.infinity,
-                      height: 200,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        height: 200,
-                        color: Colors.grey,
-                        child: Icon(Icons.image_not_supported, size: 100),
-                      ),
+                  Container(
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      image: widget.restaurant.imageUrl != null
+                          ? DecorationImage(
+                              image: NetworkImage(widget.restaurant.imageUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                      color: Colors.grey[300],
                     ),
+                    child: widget.restaurant.imageUrl == null
+                        ? const Center(child: Icon(Icons.restaurant, size: 80))
+                        : null,
                   ),
-                  SizedBox(height: 16),
-                  Text(restaurant.name ?? 'Nom inconnu',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
-                  Row(
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.restaurant.name ?? 'Nom inconnu',
+                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on, color: Colors.red),
-                      SizedBox(width: 5),
-                      Expanded(child: Text(restaurant.address ?? 'Adresse non renseignée')),
+                      const Text(
+                        "Cuisines proposées:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 5),
+                      Wrap(
+                        spacing: 8,
+                        children: widget.restaurant.cuisines.map((cuisine) => InputChip(
+                          label: Text(cuisine),
+                          selected: favoritesVM.isCuisineFavorite(cuisine),
+                          onSelected: (selected) => favoritesVM.toggleCuisineFavorite(cuisine),
+                          selectedColor: Colors.blue[100],
+                          avatar: Icon(
+                            favoritesVM.isCuisineFavorite(cuisine)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: Colors.red,
+                            size: 18,
+                          ),
+                        )).toList(),
+                      ),
                     ],
                   ),
-                  SizedBox(height: 10),
-                  Text("Cuisine : ${restaurant.cuisines.join(', ')}"),
-                  SizedBox(height: 20),
-                  Divider(),
-                  Text("Avis des utilisateurs", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 10),
-
+                  const SizedBox(height: 20),
+                  const Divider(),
+                  const Text(
+                    "Avis des utilisateurs",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 10),
                   FutureBuilder<List<Map<String, dynamic>>>(
                     future: _loadReviewsWithUsernames(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Erreur: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(child: Text("Aucun avis disponible."));
-                      } else {
-                        var reviewsWithUsernames = snapshot.data!;
-                        return Column(
-                          children: reviewsWithUsernames.map((entry) {
-                            var review = entry['review'] as Review;
-                            var username = entry['username'] as String;
-
-                            return ListTile(
-                              leading: Icon(Icons.person),
-                              title: Text(username, style: TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      RatingBarIndicator(
-                                        rating: review.rating ?? 0.0,
-                                        itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
-                                        itemCount: 5,
-                                        itemSize: 18,
-                                      ),
-                                      SizedBox(width: 8),
-                                      Expanded(child: Text(review.comment)),
-                                    ],
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text("${review.date.toLocal()}".split(' ')[0]),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        );
+                        return const Center(child: CircularProgressIndicator());
                       }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Erreur: ${snapshot.error}'));
+                      }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text("Aucun avis disponible."));
+                      }
+                      
+                      return Column(
+                        children: snapshot.data!.map((entry) {
+                          final review = entry['review'] as Review;
+                          final username = entry['username'] as String;
+
+                          return ListTile(
+                            leading: const Icon(Icons.person),
+                            title: Text(username, style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    RatingBarIndicator(
+                                      rating: review.rating ?? 0.0,
+                                      itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
+                                      itemCount: 5,
+                                      itemSize: 18,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: Text(review.comment)),
+                                  ],
+                                ),
+                                Text("${review.date.toLocal()}".split(' ')[0]),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                      );
                     },
                   ),
                 ],
@@ -190,30 +197,35 @@ class _RestaurantDetailState extends State<RestaurantDetail> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                Text("Laisser un avis", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  "Laisser un avis",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
                 RatingBar.builder(
                   initialRating: _rating,
                   minRating: 1,
                   direction: Axis.horizontal,
-                  allowHalfRating: false, 
                   itemCount: 5,
-                  itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
-                  itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
+                  itemPadding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  itemBuilder: (context, _) => const Icon(Icons.star, color: Colors.amber),
                   onRatingUpdate: (rating) => _rating = rating,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 TextField(
                   controller: _commentController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: OutlineInputBorder(),
                     labelText: 'Votre commentaire',
                   ),
                 ),
-                SizedBox(height: 10),
-                ElevatedButton(onPressed: _submitReview, child: Text("Envoyer")),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: _submitReview,
+                  child: const Text("Envoyer"),
+                ),
               ],
             ),
           ),

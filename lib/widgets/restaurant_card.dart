@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/Restaurant.dart';
+import '../viewModel/favorites_viewmodel.dart';
 import '../restaurant_detail.dart';
 
 class RestaurantCard extends StatelessWidget {
@@ -9,50 +11,85 @@ class RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final favoritesVM = context.watch<FavoritesViewModel>();
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RestaurantDetail(restaurant : restaurant),
+            builder: (context) => RestaurantDetail(restaurant: restaurant),
           ),
         );
       },
       child: Card(
-        margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 5,
+        elevation: 3,
         child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Row(
+          padding: const EdgeInsets.all(12),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.network(
-                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcREgDDOHY30gdRmIt2Q5sjLTlav9OUdNMtlqKEV-QXbGFPi2W-egDo8pJU5Kw&s",
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Icon(Icons.image_not_supported, size: 80),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      restaurant.name ?? "Nom inconnu",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      image: restaurant.imageUrl != null
+                          ? DecorationImage(
+                              image: NetworkImage(restaurant.imageUrl!),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                      color: Colors.grey[300],
                     ),
-                    SizedBox(height: 5),
-                    Text(
-                      restaurant.cuisines.join(', '),
-                      style: TextStyle(color: Colors.grey[700]),
+                    child: restaurant.imageUrl == null
+                        ? const Icon(Icons.restaurant, size: 40)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                restaurant.name ?? 'Nom inconnu',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                favoritesVM.isRestaurantFavorite(restaurant.restaurantId!)
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: Colors.red,
+                              ),
+                              onPressed: () => favoritesVM.toggleRestaurantFavorite(restaurant),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          restaurant.cuisines.join(', '),
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:sae_restaurant/restaurant_liste.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import '../mytheme.dart';
-import '../viewModel/settingViewModel.dart';
-import '../ecran_settings.dart';
-import 'auth_page.dart'; // Page d'authentification
-import '/providers/user_provider.dart'; // Import du nouveau provider
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sae_restaurant/services/local_storage_service.dart';
+import 'package:sae_restaurant/viewModel/favorites_viewmodel.dart';
+import 'package:sae_restaurant/viewModel/settingViewModel.dart';
+import 'package:sae_restaurant/ecran_settings.dart';
+import 'package:sae_restaurant/restaurant_liste.dart';
+import 'package:sae_restaurant/ecran_favoris.dart';
+import 'package:sae_restaurant/theme/mytheme.dart';
+import 'package:sae_restaurant/providers/user_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +18,20 @@ Future<void> main() async {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRoaHVnb3VneGVxcWpnbGVnb3Z2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDEwMTM2NTgsImV4cCI6MjA1NjU4OTY1OH0.-D6yUvdMPVSIbQQaWvs1WrTBBk7YG1OGE81VptxiYIs',
   );
 
-  runApp(MyApp());
+  final localStorage = LocalStorageService();
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => SettingViewModel()),
+        ChangeNotifierProvider(
+          create: (context) => FavoritesViewModel(localStorage)..loadFavorites(),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -27,61 +42,45 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  int _index = 0;
-  bool _isLoggedIn = false;
+  int _currentIndex = 0;
 
-  final List<Widget> _vues = <Widget>[
-    RestaurantListe(),
+  final List<Widget> _screens = [
+    const RestaurantListe(),
+    const FavoritesScreen(),
     EcranSettings(),
   ];
 
-  void _onItemTapped(int currentIndex) {
-    setState(() {
-      _index = currentIndex;
-    });
-  }
-
-  void _handleLoginSuccess() {
-    setState(() {
-      _isLoggedIn = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => SettingViewModel()),
-        ChangeNotifierProvider(create: (_) => UserProvider()), // Ajout de UserProvider
-      ],
-      child: Consumer<SettingViewModel>(
-        builder: (context, settingvm, _) {
-          return MaterialApp(
-            title: "TD2",
-            debugShowCheckedModeBanner: false,
-            theme: settingvm.isDark ? MyTheme.dark() : MyTheme.light(),
-            home: _isLoggedIn
-                ? _buildMainApp()
-                : AuthPage(onLoginSuccess: _handleLoginSuccess),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildMainApp() {
-    return Scaffold(
-      appBar: AppBar(),
-      body: _vues[_index],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _index,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.restaurant), label: "Restaurants"),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: "Paramètres"),
-        ],
-      ),
+    return Consumer<SettingViewModel>(
+      builder: (context, settings, child) {
+        return MaterialApp(
+          title: 'Mon Restaurant App',
+          debugShowCheckedModeBanner: false,
+          theme: settings.isDark ? MyTheme.dark() : MyTheme.light(),
+          home: Scaffold(
+            body: _screens[_currentIndex],
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: _currentIndex,
+              onTap: (index) => setState(() => _currentIndex = index),
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.restaurant),
+                  label: 'Restaurants',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.favorite),
+                  label: 'Favoris',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.settings),
+                  label: 'Paramètres',
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
