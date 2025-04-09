@@ -1,6 +1,6 @@
 {
-    "name": "sae_restaurant",
-    "short_name": "sae_restaurant",
+    "name": "tp2",
+    "short_name": "tp2",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
